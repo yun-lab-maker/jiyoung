@@ -27,13 +27,22 @@
         .btn-group { display: flex; gap: 10px; margin: 20px 0; }
         .nav-btn { flex: 1; padding: 18px; border-radius: 15px; border: none; background: var(--primary); color: white; cursor: pointer; font-size: 18px; font-weight: bold; box-shadow: 0 5px 0 #e03a49; }
         .nav-btn.prev { background: #bbb; box-shadow: 0 5px 0 #999; }
-        .nav-btn:active { transform: translateY(2px); box-shadow: 0 2px 0 #e03a49; }
-        .nav-btn.prev:active { box-shadow: 0 2px 0 #999; }
-        .nav-btn:disabled { background: #eee; color: #ccc; box-shadow: none; cursor: not-allowed; }
+        .nav-btn:disabled { background: #eee; color: #ccc; box-shadow: none; }
 
         .full-script { background: white; padding: 25px; border-radius: 25px; border: 2px solid #ddd; text-align: left; margin-top: 20px; display: none; }
         .script-line { margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #f0f0f0; }
         .word-box { text-align: left; background: #f1f2f6; padding: 20px; border-radius: 15px; margin-top: 20px; font-size: 17px; border-left: 5px solid #ced4da; display: none; }
+        
+        /* 기록 리스트 스타일 */
+        .history-item { background: white; padding: 15px; border-radius: 15px; border: 1px solid #eee; margin-bottom: 10px; text-align: left; cursor: pointer; position: relative; }
+        .history-item:active { background: #fff0f0; }
+        .history-item::after { content: '보기 >'; position: absolute; right: 15px; top: 18px; color: #ccc; font-size: 12px; }
+
+        /* 복습용 팝업(모달) 스타일 */
+        #review-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1000; overflow-y: auto; }
+        .modal-content { background: white; width: 90%; max-width: 450px; margin: 50px auto; border-radius: 25px; padding: 20px; position: relative; text-align: left; }
+        .close-modal { float: right; font-size: 24px; font-weight: bold; cursor: pointer; color: #999; }
+
         .tts-btn { background: #e1f5fe; color: #0288d1; border: none; padding: 10px 20px; border-radius: 50px; cursor: pointer; font-size: 16px; font-weight: bold; align-self: center; }
         .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
         .stat-item { background: white; padding: 20px; border-radius: 20px; border: 1px solid #eee; }
@@ -45,6 +54,7 @@
         <div class="tab active" id="tab-study" onclick="switchPage('study')">📖 대화 연습</div>
         <div class="tab" id="tab-stats" onclick="switchPage('stats')">📊 공부 기록</div>
     </div>
+    
     <div class="container">
         <div id="study-page" class="page active">
             <div id="content-area">
@@ -55,17 +65,14 @@
                     <p class="pronunciation" id="lbl-pronunciation"></p>
                     <button class="tts-btn" onclick="playCurrentTTS()">🔊 소리 듣기</button>
                 </div>
-                
                 <div id="full-script-area" class="full-script">
                     <h3 style="margin-top:0; color:var(--primary);">📜 전체 대본 복습</h3>
                     <div id="script-content"></div>
                 </div>
-                
                 <div id="word-area" class="word-box">
                     <span style="font-weight:bold; color:#555; display:block; margin-bottom:10px;">💡 주요 단어 익히기</span>
                     <div id="lbl-words"></div>
                 </div>
-                
                 <div class="btn-group" id="main-btns">
                     <button class="nav-btn prev" id="btn-prev" onclick="prevStep()">⬅️ 이전</button>
                     <button class="nav-btn" id="btn-next" onclick="nextStep()">다음 ➡️</button>
@@ -79,75 +86,83 @@
                 <div class="stat-item"><span class="stat-val" id="stat-total">0</span><span style="font-size:14px; color:#666;">완료한 상황극</span></div>
                 <div class="stat-item"><span class="stat-val" id="stat-days">0</span><span style="font-size:14px; color:#666;">연속 학습일</span></div>
             </div>
-            <div id="history-box" style="text-align:left; margin-top:20px; padding:15px; background:white; border-radius:15px;"><h4 style="margin:0;">최근 학습 내역</h4><div id="history-list"></div></div>
+            <div style="text-align:left; margin-top:25px;"><h4 style="margin-left:5px;">📅 최근 학습 내역 (클릭 시 복습)</h4><div id="history-list"></div></div>
+        </div>
+    </div>
+
+    <div id="review-modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeModal()">&times;</span>
+            <h3 id="modal-title" style="color:var(--primary); margin-top:0;">복습하기</h3>
+            <div id="modal-body" style="margin-top:20px;"></div>
+            <hr>
+            <div id="modal-words" class="word-box" style="display:block; background:#f9f9f9; border:none;"></div>
         </div>
     </div>
     
     <script>
         const API_KEY = "AIzaSyD4t-Mn7mUBBEk0c3m0n-yZHWN9zo0IB-c";
         let currentIndex = 0;
-        let dialogue = [
-            {speaker:'Staff', en:'Welcome! Are you ready to order?', ko:'어서오세요! 주문하시겠어요?', pr:'웰컴! 아 유 레디 투 오더?'},
-            {speaker:'Jiyoung', en:'Yes, what is the best dish here?', ko:'네, 여기서 가장 맛있는 요리가 뭐예요?', pr:'예스, 왓 이즈 더 베스트 디쉬 히어?'},
-            {speaker:'Staff', en:'Our steak is very popular.', ko:'저희 스테이크가 아주 인기있습니다.', pr:'아워 스테이크 이즈 베리 파퓰러.'},
-            {speaker:'Jiyoung', en:'Okay, I will have the steak.', ko:'좋아요, 스테이크로 할게요.', pr:'오케이, 아이 윌 해브 더 스테이크.'},
-            {speaker:'Staff', en:'Great. Anything to drink?', ko:'좋습니다. 마실 것도 필요하세요?', pr:'그레이트. 애니띵 투 드링크?'},
-            {speaker:'Jiyoung', en:'Just water, please.', ko:'물만 주세요.', pr:'저스트 워터, 플리즈.'}
-        ];
-        let scenarioInfo = "식당에서 주문하기";
-        let wordsInfo = "<b>Popular:</b> 인기 있는<br><b>Dish:</b> 요리";
+        let dialogue = []; 
+        let scenarioInfo = "";
+        let wordsInfo = "";
         let stats = JSON.parse(localStorage.getItem('jiyoungStats')) || { total: 0, days: 0, lastDate: '', history: [] };
+
+        // 기본 목업 데이터
+        const initialData = {
+            situation: "식당에서 메뉴 주문하기",
+            lines: [
+                {speaker:'Staff', en:'Welcome! Are you ready to order?', ko:'어서오세요! 주문하시겠어요?', pr:'웰컴! 아 유 레디 투 오더?'},
+                {speaker:'Jiyoung', en:'Yes, what is the best dish here?', ko:'네, 여기서 가장 맛있는 요리가 뭐예요?', pr:'예스, 왓 이즈 더 베스트 디쉬 히어?'},
+                {speaker:'Staff', en:'Our steak is very popular.', ko:'저희 스테이크가 아주 인기있습니다.', pr:'아워 스테이크 이즈 베리 파퓰러.'},
+                {speaker:'Jiyoung', en:'Okay, I will have the steak.', ko:'좋아요, 스테이크로 할게요.', pr:'오케이, 아이 윌 해브 더 스테이크.'},
+                {speaker:'Staff', en:'Great. Anything to drink?', ko:'좋습니다. 마실 것도 필요하세요?', pr:'그레이트. 애니띵 투 드링크?'},
+                {speaker:'Jiyoung', en:'Just water, please.', ko:'물만 주세요.', pr:'저스트 워터, 플리즈.'}
+            ],
+            words: "<b>Order:</b> 주문하다<br><b>Dish:</b> 요리<br><b>Popular:</b> 인기 있는"
+        };
 
         async function fetchDialogue() {
             try {
                 const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
-                const prompt = "Generate 6-line dialogue (Staff vs Jiyoung) for travel English. Return ONLY JSON: {situation, lines:[{speaker,en,ko,pr}], words}";
+                const prompt = "Generate 6-line travel English dialogue between Staff and Jiyoung. Return ONLY JSON: {situation, lines:[{speaker,en,ko,pr}], words}";
                 const res = await fetch(url, { method: 'POST', body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }) });
                 const json = await res.json();
                 const data = JSON.parse(json.candidates[0].content.parts[0].text.replace(/```json|```/g, ""));
                 dialogue = data.lines; scenarioInfo = data.situation; wordsInfo = data.words;
                 renderStep();
-            } catch (e) { console.log("AI 응답 지연 - 기본 문장으로 진행"); }
+            } catch (e) { 
+                dialogue = initialData.lines; scenarioInfo = initialData.situation; wordsInfo = initialData.words;
+                renderStep();
+            }
         }
 
         function renderStep() {
             const line = dialogue[currentIndex];
             const card = document.getElementById('speaker-card');
             const isJiyoung = line.speaker === 'Jiyoung';
-            
             document.getElementById('lbl-situation').innerText = "📍 상황: " + scenarioInfo;
             card.setAttribute('data-speaker', isJiyoung ? "지영" : "직원 (Staff)");
             if(isJiyoung) card.classList.add('user-card'); else card.classList.remove('user-card');
-            
             document.getElementById('lbl-meaning').innerText = line.ko;
             document.getElementById('lbl-english').innerText = line.en;
             document.getElementById('lbl-pronunciation').innerText = line.pr;
-            
-            // 이전 버튼 활성화/비활성화
             document.getElementById('btn-prev').disabled = (currentIndex === 0);
             document.getElementById('btn-next').innerText = (currentIndex === dialogue.length - 1) ? "학습 완료 💮" : "다음 ➡️";
         }
 
         function nextStep() {
-            if (currentIndex < dialogue.length - 1) { 
-                currentIndex++; 
-                renderStep(); 
-            } else { 
-                finishStudy(); 
-            }
+            if (currentIndex < dialogue.length - 1) { currentIndex++; renderStep(); }
+            else { finishStudy(); }
         }
 
-        function prevStep() {
-            if (currentIndex > 0) { 
-                currentIndex--; 
-                renderStep(); 
-            }
-        }
+        function prevStep() { if (currentIndex > 0) { currentIndex--; renderStep(); } }
 
         function finishStudy() {
             document.getElementById('speaker-card').style.display = 'none';
             document.getElementById('main-btns').style.display = 'none';
-            document.getElementById('script-content').innerHTML = dialogue.map(l => `<div class="script-line"><small>${l.speaker === 'Jiyoung' ? '지영' : '직원'}</small><br><b>${l.en}</b><br>${l.ko}</div>`).join('');
+            const scriptHTML = dialogue.map(l => `<div class="script-line"><small>${l.speaker === 'Jiyoung' ? '지영' : '직원'}</small><br><b>${l.en}</b><br>${l.ko}</div>`).join('');
+            document.getElementById('script-content').innerHTML = scriptHTML;
             document.getElementById('full-script-area').style.display = 'block';
             document.getElementById('lbl-words').innerHTML = wordsInfo;
             document.getElementById('word-area').style.display = 'block';
@@ -155,15 +170,11 @@
             saveStats();
         }
 
-        function playCurrentTTS() {
-            window.speechSynthesis.cancel();
-            const ut = new SpeechSynthesisUtterance(dialogue[currentIndex].en);
-            ut.lang = 'en-US'; ut.rate = 0.8; window.speechSynthesis.speak(ut);
-        }
-
         function saveStats() {
             const today = new Date().toLocaleDateString();
-            stats.total++; stats.history.push(`${today} - ${scenarioInfo}`);
+            const record = { date: today, situation: scenarioInfo, lines: dialogue, words: wordsInfo };
+            stats.total++;
+            stats.history.push(record);
             if (stats.lastDate !== today) { stats.days++; stats.lastDate = today; }
             localStorage.setItem('jiyoungStats', JSON.stringify(stats));
         }
@@ -173,13 +184,45 @@
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             document.getElementById(p + '-page').classList.add('active');
             document.getElementById('tab-' + p).classList.add('active');
-            if(p === 'stats') {
-                document.getElementById('stat-total').innerText = stats.total;
-                document.getElementById('stat-days').innerText = stats.days;
-                document.getElementById('history-list').innerHTML = stats.history.slice(-5).reverse().map(h => `<div style="border-bottom:1px solid #eee; padding:5px;">✅ ${h}</div>`).join('');
-            }
+            if(p === 'stats') renderHistory();
         }
-        renderStep();
+
+        function renderHistory() {
+            document.getElementById('stat-total').innerText = stats.total;
+            document.getElementById('stat-days').innerText = stats.days;
+            document.getElementById('history-list').innerHTML = stats.history.slice(-10).reverse().map((h, i) => `
+                <div class="history-item" onclick="openReview(${stats.history.length - 1 - i})">
+                    <span style="font-size:13px; color:#999;">${h.date}</span><br>
+                    <strong>💮 ${h.situation}</strong>
+                </div>
+            `).join('');
+        }
+
+        function openReview(index) {
+            const data = stats.history[index];
+            document.getElementById('modal-title').innerText = "📜 " + data.situation;
+            document.getElementById('modal-body').innerHTML = data.lines.map(l => `
+                <div style="margin-bottom:15px;">
+                    <small style="color:#007aff; font-weight:bold;">${l.speaker === 'Jiyoung' ? '지영' : '직원'}</small><br>
+                    <div style="font-size:18px; font-weight:bold;">${l.en}</div>
+                    <div style="color:#666;">${l.ko}</div>
+                </div>
+            `).join('');
+            document.getElementById('modal-words').innerHTML = "<b>단어 복습:</b><br>" + data.words;
+            document.getElementById('review-modal').style.display = 'block';
+        }
+
+        function closeModal() { document.getElementById('review-modal').style.display = 'none'; }
+        function playCurrentTTS() {
+            window.speechSynthesis.cancel();
+            const ut = new SpeechSynthesisUtterance(dialogue[currentIndex].en);
+            ut.lang = 'en-US'; ut.rate = 0.8; window.speechSynthesis.speak(ut);
+        }
+
+        window.onclick = function(event) {
+            if (event.target == document.getElementById('review-modal')) closeModal();
+        }
+
         fetchDialogue();
     </script>
 </body>
