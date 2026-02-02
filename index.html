@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>지영이의 영어 한 입</title>
+    <style>
+        body { font-family: 'Apple SD Gothic Neo', sans-serif; text-align: center; padding: 20px; background-color: #fff9f9; color: #333; }
+        .container { max-width: 500px; margin: auto; background: white; padding: 30px; border-radius: 30px; box-shadow: 0 10px 20px rgba(0,0,0,0.05); border: 2px solid #ffccd5; }
+        .welcome { font-size: 24px; font-weight: bold; color: #ff4757; margin-bottom: 20px; }
+        .card { background: #fff5f5; padding: 20px; border-radius: 20px; margin-bottom: 20px; }
+        .meaning { font-size: 22px; color: #444; margin-bottom: 5px; font-weight: bold; }
+        .english { font-size: 28px; font-weight: bold; color: #007aff; margin-bottom: 10px; }
+        .pronunciation { font-size: 20px; color: #888; margin-bottom: 20px; }
+        
+        /* 단어 설명 스타일 */
+        .word-box { text-align: left; background: #f1f2f6; padding: 15px; border-radius: 15px; margin-bottom: 20px; font-size: 18px; }
+        .word-item { margin-bottom: 8px; line-height: 1.4; }
+        .word-en { font-weight: bold; color: #2f3542; margin-right: 5px; }
+
+        .btn { background: #ff4757; color: white; border: none; padding: 20px; font-size: 22px; border-radius: 20px; width: 100%; cursor: pointer; font-weight: bold; box-shadow: 0 4px 0 #e03a49; }
+        .btn:active { transform: translateY(2px); box-shadow: 0 2px 0 #e03a49; }
+        #feedback { margin-top: 25px; font-size: 19px; line-height: 1.6; color: #2d3436; min-height: 60px; padding: 15px; background: #f0f2f5; border-radius: 15px; border-left: 5px solid #ff4757; }
+        .stamps { font-size: 40px; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="welcome">🌸 지영 님, 오늘도 화이팅! 🌸</div>
+        
+        <div class="card">
+            <p class="meaning">실례지만, 길 좀 알려주실 수 있나요?</p>
+            <p class="english" id="targetText">Excuse me, can you tell me the way?</p>
+            <p class="pronunciation">[ 익스큐즈 미, 캔 유 텔 미 더 웨이? ]</p>
+        </div>
+
+        <div class="word-box">
+            <div class="word-item"><span class="word-en">Excuse me:</span> 실례합니다</div>
+            <div class="word-item"><span class="word-en">Tell:</span> 말하다/알려주다</div>
+            <div class="word-item"><span class="word-en">Way:</span> 길/방법</div>
+        </div>
+        
+        <button class="btn" onclick="startRecognition()">🎤 눌러서 말해보기</button>
+        <div id="feedback">아래 버튼을 누르고 문장을 크게 읽어보세요!</div>
+        
+        <div class="stamps" id="stamps">⚪ ⚪ ⚪ ⚪ ⚪</div>
+    </div>
+
+    <script>
+        const API_KEY = "AIzaSyD4t-Mn7mUBBEk0c3m0n-yZHWN9zo0IB-c"; 
+        let stampCount = 0;
+
+        async function startRecognition() {
+            const feedbackDiv = document.getElementById('feedback');
+            const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+            recognition.lang = 'en-US';
+
+            feedbackDiv.innerText = "지영 님의 목소리를 듣고 있어요...";
+            recognition.start();
+
+            recognition.onresult = async (event) => {
+                const userSpeech = event.results[0][0].transcript;
+                const targetText = document.getElementById('targetText').innerText;
+                
+                feedbackDiv.innerText = "제미나이 선생님이 분석 중입니다...";
+
+                const feedback = await getGeminiFeedback(userSpeech, targetText);
+                feedbackDiv.innerText = feedback;
+                
+                if (stampCount < 5) {
+                    stampCount++;
+                    document.getElementById('stamps').innerHTML = "💮".repeat(stampCount) + "⚪".repeat(5 - stampCount);
+                }
+            };
+        }
+
+        async function getGeminiFeedback(userSpeech, targetText) {
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
+            const prompt = `당신은 60대 한국인 여성 '지영' 님을 위한 다정한 영어 선생님입니다. 
+                           목표: "${targetText}", 지영 님의 발음: "${userSpeech}". 
+                           지영 님의 이름을 부르며 친절하게 칭찬해주고, 발음 교정 팁을 한국어로 2문장 내로 아주 쉽게 말해주세요. 
+                           마지막엔 항상 "지영 님, 참 잘하셨어요! 💮"라고 해주세요.`;
+
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+                });
+                const data = await response.json();
+                return data.candidates[0].content.parts[0].text;
+            } catch (e) {
+                return "지영 님, 목소리가 정말 좋으시네요! 자신감 있게 하신 점이 최고예요. 참 잘하셨어요! 💮";
+            }
+        }
+    </script>
+</body>
+</html>
