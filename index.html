@@ -14,18 +14,26 @@
         .page { display: none; }
         .page.active { display: block; }
         .situation-tag { background: #ffeaa7; color: #d63031; padding: 5px 15px; border-radius: 50px; font-weight: bold; font-size: 14px; margin-bottom: 15px; display: inline-block; }
+        
         .card { background: white; padding: 35px 20px; border-radius: 25px; box-shadow: 0 8px 15px rgba(0,0,0,0.05); border: 2px solid #ffccd5; margin-bottom: 15px; position: relative; min-height: 180px; display: flex; flex-direction: column; justify-content: center; }
         .card::before { content: attr(data-speaker); position: absolute; top: -15px; left: 20px; background: #555; color: white; padding: 4px 15px; border-radius: 10px; font-size: 14px; font-weight: bold; }
         .card.user-card { border-color: var(--secondary); background: #f0f7ff; }
         .card.user-card::before { background: var(--secondary); }
+        
         .meaning { font-size: 22px; color: #444; font-weight: bold; margin-bottom: 10px; }
         .english { font-size: 26px; font-weight: bold; color: var(--secondary); margin: 10px 0; line-height: 1.3; }
         .pronunciation { font-size: 18px; color: #888; margin-bottom: 15px; }
+        
+        .btn-group { display: flex; gap: 10px; margin: 20px 0; }
+        .nav-btn { flex: 1; padding: 18px; border-radius: 15px; border: none; background: var(--primary); color: white; cursor: pointer; font-size: 18px; font-weight: bold; box-shadow: 0 5px 0 #e03a49; }
+        .nav-btn.prev { background: #bbb; box-shadow: 0 5px 0 #999; }
+        .nav-btn:active { transform: translateY(2px); box-shadow: 0 2px 0 #e03a49; }
+        .nav-btn.prev:active { box-shadow: 0 2px 0 #999; }
+        .nav-btn:disabled { background: #eee; color: #ccc; box-shadow: none; cursor: not-allowed; }
+
         .full-script { background: white; padding: 25px; border-radius: 25px; border: 2px solid #ddd; text-align: left; margin-top: 20px; display: none; }
         .script-line { margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #f0f0f0; }
         .word-box { text-align: left; background: #f1f2f6; padding: 20px; border-radius: 15px; margin-top: 20px; font-size: 17px; border-left: 5px solid #ced4da; display: none; }
-        .btn-group { margin: 20px 0; }
-        .nav-btn { width: 100%; padding: 20px; border-radius: 15px; border: none; background: var(--primary); color: white; cursor: pointer; font-size: 20px; font-weight: bold; box-shadow: 0 5px 0 #e03a49; }
         .tts-btn { background: #e1f5fe; color: #0288d1; border: none; padding: 10px 20px; border-radius: 50px; cursor: pointer; font-size: 16px; font-weight: bold; align-self: center; }
         .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
         .stat-item { background: white; padding: 20px; border-radius: 20px; border: 1px solid #eee; }
@@ -40,27 +48,32 @@
     <div class="container">
         <div id="study-page" class="page active">
             <div id="content-area">
-                <div class="situation-tag" id="lbl-situation">📍 상황: 식당에서 주문하기</div>
+                <div class="situation-tag" id="lbl-situation">📍 상황 로딩 중...</div>
                 <div class="card" id="speaker-card" data-speaker="직원">
-                    <p class="meaning" id="lbl-meaning">무엇을 도와드릴까요?</p>
-                    <p class="english" id="lbl-english">May I take your order?</p>
-                    <p class="pronunciation" id="lbl-pronunciation">메이 아이 테이크 유어 오더?</p>
+                    <p class="meaning" id="lbl-meaning"></p>
+                    <p class="english" id="lbl-english"></p>
+                    <p class="pronunciation" id="lbl-pronunciation"></p>
                     <button class="tts-btn" onclick="playCurrentTTS()">🔊 소리 듣기</button>
                 </div>
+                
                 <div id="full-script-area" class="full-script">
                     <h3 style="margin-top:0; color:var(--primary);">📜 전체 대본 복습</h3>
                     <div id="script-content"></div>
                 </div>
+                
                 <div id="word-area" class="word-box">
                     <span style="font-weight:bold; color:#555; display:block; margin-bottom:10px;">💡 주요 단어 익히기</span>
-                    <div id="lbl-words"><b>Order:</b> 주문하다<br><b>Recommend:</b> 추천하다</div>
+                    <div id="lbl-words"></div>
                 </div>
-                <div class="btn-group">
-                    <button class="nav-btn" id="btn-next" onclick="nextStep()">다음 대사 보기 ➡️</button>
-                    <button class="nav-btn" id="btn-restart" style="display:none; background:#555; box-shadow:0 5px 0 #333;" onclick="location.reload()">새로운 상황 시작</button>
+                
+                <div class="btn-group" id="main-btns">
+                    <button class="nav-btn prev" id="btn-prev" onclick="prevStep()">⬅️ 이전</button>
+                    <button class="nav-btn" id="btn-next" onclick="nextStep()">다음 ➡️</button>
                 </div>
+                <button class="nav-btn" id="btn-restart" style="display:none; background:#555; box-shadow:0 5px 0 #333;" onclick="location.reload()">새로운 상황 시작</button>
             </div>
         </div>
+        
         <div id="stats-page" class="page">
             <div class="stat-grid">
                 <div class="stat-item"><span class="stat-val" id="stat-total">0</span><span style="font-size:14px; color:#666;">완료한 상황극</span></div>
@@ -69,6 +82,7 @@
             <div id="history-box" style="text-align:left; margin-top:20px; padding:15px; background:white; border-radius:15px;"><h4 style="margin:0;">최근 학습 내역</h4><div id="history-list"></div></div>
         </div>
     </div>
+    
     <script>
         const API_KEY = "AIzaSyD4t-Mn7mUBBEk0c3m0n-yZHWN9zo0IB-c";
         let currentIndex = 0;
@@ -100,23 +114,39 @@
             const line = dialogue[currentIndex];
             const card = document.getElementById('speaker-card');
             const isJiyoung = line.speaker === 'Jiyoung';
+            
             document.getElementById('lbl-situation').innerText = "📍 상황: " + scenarioInfo;
             card.setAttribute('data-speaker', isJiyoung ? "지영" : "직원 (Staff)");
             if(isJiyoung) card.classList.add('user-card'); else card.classList.remove('user-card');
+            
             document.getElementById('lbl-meaning').innerText = line.ko;
             document.getElementById('lbl-english').innerText = line.en;
             document.getElementById('lbl-pronunciation').innerText = line.pr;
-            document.getElementById('btn-next').innerText = `다음 대사 (${currentIndex + 1}/${dialogue.length}) ➡️`;
+            
+            // 이전 버튼 활성화/비활성화
+            document.getElementById('btn-prev').disabled = (currentIndex === 0);
+            document.getElementById('btn-next').innerText = (currentIndex === dialogue.length - 1) ? "학습 완료 💮" : "다음 ➡️";
         }
 
         function nextStep() {
-            if (currentIndex < dialogue.length - 1) { currentIndex++; renderStep(); }
-            else { finishStudy(); }
+            if (currentIndex < dialogue.length - 1) { 
+                currentIndex++; 
+                renderStep(); 
+            } else { 
+                finishStudy(); 
+            }
+        }
+
+        function prevStep() {
+            if (currentIndex > 0) { 
+                currentIndex--; 
+                renderStep(); 
+            }
         }
 
         function finishStudy() {
             document.getElementById('speaker-card').style.display = 'none';
-            document.getElementById('btn-next').style.display = 'none';
+            document.getElementById('main-btns').style.display = 'none';
             document.getElementById('script-content').innerHTML = dialogue.map(l => `<div class="script-line"><small>${l.speaker === 'Jiyoung' ? '지영' : '직원'}</small><br><b>${l.en}</b><br>${l.ko}</div>`).join('');
             document.getElementById('full-script-area').style.display = 'block';
             document.getElementById('lbl-words').innerHTML = wordsInfo;
@@ -149,8 +179,8 @@
                 document.getElementById('history-list').innerHTML = stats.history.slice(-5).reverse().map(h => `<div style="border-bottom:1px solid #eee; padding:5px;">✅ ${h}</div>`).join('');
             }
         }
-        renderStep(); // 즉시 샘플 출력
-        fetchDialogue(); // 배경에서 AI 대본 가져오기
+        renderStep();
+        fetchDialogue();
     </script>
 </body>
 </html>
