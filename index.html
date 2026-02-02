@@ -5,68 +5,104 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>지영이의 영어 한 입</title>
     <style>
-        body { font-family: 'Apple SD Gothic Neo', sans-serif; text-align: center; padding: 20px; background-color: #fff9f9; color: #333; }
-        .container { max-width: 500px; margin: auto; background: white; padding: 30px; border-radius: 30px; box-shadow: 0 10px 20px rgba(0,0,0,0.05); border: 2px solid #ffccd5; }
-        .card { background: #fff5f5; padding: 25px; border-radius: 20px; margin-bottom: 20px; min-height: 180px; display: flex; flex-direction: column; justify-content: center; }
-        .meaning { font-size: 22px; color: #444; margin-bottom: 8px; font-weight: bold; }
-        .english { font-size: 28px; font-weight: bold; color: #007aff; margin-bottom: 10px; line-height: 1.2; }
-        .pronunciation { font-size: 20px; color: #888; margin-bottom: 15px; }
-        .word-box { text-align: left; background: #f1f2f6; padding: 20px; border-radius: 15px; margin-bottom: 20px; font-size: 18px; min-height: 100px; }
-        .btn-group { display: flex; gap: 10px; margin-bottom: 15px; }
-        .nav-btn { flex: 1; padding: 15px; font-size: 18px; border-radius: 15px; border: 1px solid #ddd; cursor: pointer; background: white; }
-        .speak-btn { background: #ff4757; color: white; border: none; padding: 20px; font-size: 22px; border-radius: 20px; width: 100%; cursor: pointer; font-weight: bold; }
-        .tts-btn { background: #e1f5fe; color: #0288d1; border: none; padding: 10px 20px; border-radius: 50px; cursor: pointer; font-size: 18px; font-weight: bold; margin-bottom: 10px; border: 1px solid #b3e5fc; }
-        #feedback { margin-top: 20px; font-size: 19px; line-height: 1.6; color: #2d3436; padding: 15px; background: #f0f2f5; border-radius: 15px; border-left: 5px solid #ff4757; min-height: 60px; }
-        .stamps { font-size: 40px; margin-top: 15px; }
+        :root { --primary: #ff4757; --secondary: #007aff; --bg: #fff9f9; }
+        body { font-family: 'Apple SD Gothic Neo', sans-serif; text-align: center; padding: 0; margin: 0; background-color: var(--bg); color: #333; }
+        
+        /* 상단 네비게이션 */
+        .nav-tabs { display: flex; background: white; border-bottom: 1px solid #eee; position: sticky; top: 0; z-index: 100; }
+        .tab { flex: 1; padding: 15px; font-size: 18px; font-weight: bold; cursor: pointer; color: #888; }
+        .tab.active { color: var(--primary); border-bottom: 3px solid var(--primary); }
+
+        .container { max-width: 500px; margin: 20px auto; padding: 0 20px; box-sizing: border-box; }
+        .page { display: none; }
+        .page.active { display: block; }
+
+        /* 공통 카드 스타일 */
+        .card { background: white; padding: 25px; border-radius: 25px; box-shadow: 0 8px 15px rgba(0,0,0,0.05); border: 1.5px solid #ffccd5; margin-bottom: 20px; }
+        
+        /* 학습 화면 스타일 */
+        .english { font-size: 28px; font-weight: bold; color: var(--secondary); margin: 10px 0; line-height: 1.2; }
+        .meaning { font-size: 20px; color: #444; font-weight: bold; }
+        .pronunciation { font-size: 18px; color: #888; margin-bottom: 15px; }
+        .btn-group { display: flex; gap: 10px; margin: 15px 0; }
+        .nav-btn { flex: 1; padding: 12px; border-radius: 12px; border: 1px solid #ddd; background: white; cursor: pointer; }
+        .speak-btn { background: var(--primary); color: white; border: none; padding: 18px; font-size: 20px; border-radius: 15px; width: 100%; cursor: pointer; font-weight: bold; }
+        .tts-btn { background: #e1f5fe; color: #0288d1; border: none; padding: 8px 15px; border-radius: 50px; cursor: pointer; margin-bottom: 10px; }
+        
+        /* 통계 화면 스타일 */
+        .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .stat-item { background: #fff5f5; padding: 20px; border-radius: 20px; }
+        .stat-val { font-size: 30px; font-weight: bold; color: var(--primary); display: block; }
+        .stat-lbl { font-size: 14px; color: #666; }
+        .history-list { text-align: left; margin-top: 20px; }
+        .history-item { padding: 10px; border-bottom: 1px solid #eee; font-size: 15px; }
     </style>
 </head>
 <body>
+
+    <div class="nav-tabs">
+        <div class="tab active" onclick="switchPage('study')">📖 학습하기</div>
+        <div class="tab" onclick="switchPage('stats')">📊 공부기록</div>
+    </div>
+
     <div class="container">
-        <div class="card">
-            <p id="loading-msg" style="font-size: 18px; color: #888;">AI가 지영 님을 위한 오늘의 문장을 준비 중입니다...</p>
-            <div id="content-area" style="display:none;">
-                <p class="meaning" id="lbl-meaning"></p>
-                <p class="english" id="lbl-english"></p>
-                <p class="pronunciation" id="lbl-pronunciation"></p>
-                <button class="tts-btn" onclick="playTTS()">🔊 원어민 발음 듣기</button>
+        <div id="study-page" class="page active">
+            <div class="card">
+                <p id="loading-msg">문장을 불러오는 중...</p>
+                <div id="content-area" style="display:none;">
+                    <p class="meaning" id="lbl-meaning"></p>
+                    <p class="english" id="lbl-english"></p>
+                    <p class="pronunciation" id="lbl-pronunciation"></p>
+                    <button class="tts-btn" onclick="playTTS()">🔊 원어민 발음</button>
+                </div>
+            </div>
+            <div class="btn-group">
+                <button class="nav-btn" onclick="prevStep()">⬅️ 이전</button>
+                <button class="nav-btn" onclick="nextStep()">다음 ➡️</button>
+            </div>
+            <button class="speak-btn" onclick="startRecognition()">🎤 내 발음 확인하기</button>
+            <div id="feedback" style="margin-top:15px; font-size:17px; color:#555;"></div>
+        </div>
+
+        <div id="stats-page" class="page">
+            <div class="stat-grid">
+                <div class="stat-item">
+                    <span class="stat-val" id="stat-total">0</span>
+                    <span class="stat-lbl">누적 문장</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-val" id="stat-days">0</span>
+                    <span class="stat-lbl">연속 학습일</span>
+                </div>
+            </div>
+            <div class="card" style="margin-top:20px;">
+                <h3 style="margin-top:0;">최근 학습 내역</h3>
+                <div id="history-list" class="history-list">
+                    기록이 아직 없어요. 공부를 시작해볼까요?
+                </div>
             </div>
         </div>
-
-        <div class="word-box" id="lbl-words"></div>
-        
-        <div class="btn-group">
-            <button class="nav-btn" onclick="prevStep()">⬅️ 이전</button>
-            <button class="nav-btn" onclick="nextStep()">다음 ➡️</button>
-        </div>
-
-        <button class="speak-btn" onclick="startRecognition()">🎤 내 발음 확인하기</button>
-        <div id="feedback">준비가 되면 버튼을 누르고 읽어주세요!</div>
-        <div class="stamps" id="stamps">⚪ ⚪ ⚪ ⚪ ⚪</div>
     </div>
 
     <script>
-        const API_KEY = "AIzaSyD4t-Mn7mUBBEk0c3m0n-yZHWN9zo0IB-c"; //
+        const API_KEY = "AIzaSyD4t-Mn7mUBBEk0c3m0n-yZHWN9zo0IB-c";
         let currentIndex = 0;
         let dailyData = [];
-        let stamps = [false, false, false, false, false];
+        
+        // 데이터 저장소 (LocalStorage 사용)
+        let stats = JSON.parse(localStorage.getItem('jiyoungStats')) || { total: 0, days: 1, lastDate: '', history: [] };
 
-        // 1. 매일 다른 문장 5개 가져오기 (Gemini API)
         async function fetchDailySentences() {
             const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
-            const prompt = "60대 한국인을 위한 실용 여행 영어 5문장을 JSON 배열 형태로 생성해줘. 각 객체는 en(영어), ko(한글뜻), pr(한글발음), words(주요단어 뜻 설명) 필드를 가져야 해. 다른 설명 없이 JSON 코드만 보내줘.";
-            
+            const prompt = "Generate 5 travel English sentences for a 60-year-old Korean in JSON. Fields: en, ko, pr, words. ONLY JSON.";
             try {
                 const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }) });
                 const json = await res.json();
-                let text = json.candidates[0].content.parts[0].text;
-                dailyData = JSON.parse(text.replace(/```json|```/g, ""));
+                dailyData = JSON.parse(json.candidates[0].content.parts[0].text.replace(/```json|```/g, ""));
                 document.getElementById('loading-msg').style.display = 'none';
                 document.getElementById('content-area').style.display = 'block';
                 updateUI();
-            } catch (e) {
-                console.error("데이터 로딩 실패", e);
-                document.getElementById('loading-msg').innerText = "잠시 후 다시 시도해주세요.";
-            }
+            } catch (e) { console.error(e); }
         }
 
         function updateUI() {
@@ -74,54 +110,72 @@
             document.getElementById('lbl-meaning').innerText = item.ko;
             document.getElementById('lbl-english').innerText = item.en;
             document.getElementById('lbl-pronunciation').innerText = item.pr;
-            document.getElementById('lbl-words').innerHTML = item.words;
-            document.getElementById('stamps').innerHTML = stamps.map(s => s ? "💮" : "⚪").join(" ");
-            document.getElementById('feedback').innerText = (currentIndex + 1) + "번 문장입니다.";
+            updateStatsUI();
         }
 
-        // 2. 선명하고 맑은 톤의 원어민 발음 설정
+        function updateStatsUI() {
+            document.getElementById('stat-total').innerText = stats.total;
+            document.getElementById('stat-days').innerText = stats.days;
+            const hList = document.getElementById('history-list');
+            if(stats.history.length > 0) {
+                hList.innerHTML = stats.history.slice(-5).reverse().map(h => `<div class="history-item">✅ ${h}</div>`).join('');
+            }
+        }
+
+        function switchPage(pageId) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.getElementById(pageId + '-page').classList.add('active');
+            event.currentTarget.classList.add('active');
+            if(pageId === 'stats') updateStatsUI();
+        }
+
         function playTTS() {
             window.speechSynthesis.cancel();
-            const utterance = new SpeechSynthesisUtterance(dailyData[currentIndex].en);
-            const voices = window.speechSynthesis.getVoices();
-            // 가장 클리어한 목소리 찾기
-            const preferredVoice = voices.find(v => v.name.includes('Google US English') || v.name.includes('Samantha'));
-            if (preferredVoice) utterance.voice = preferredVoice;
-            
-            utterance.lang = 'en-US';
-            utterance.rate = 0.85; // 단어 구분이 잘 되게 약간 천천히
-            utterance.pitch = 1.15; // 맑고 명랑한 고음역대 톤으로 설정
-            window.speechSynthesis.speak(utterance);
+            const ut = new SpeechSynthesisUtterance(dailyData[currentIndex].en);
+            ut.pitch = 1.15; ut.rate = 0.85; ut.lang = 'en-US';
+            window.speechSynthesis.speak(ut);
         }
-
-        function nextStep() { if (currentIndex < 4) { currentIndex++; updateUI(); } }
-        function prevStep() { if (currentIndex > 0) { currentIndex--; updateUI(); } }
 
         async function startRecognition() {
             const rec = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
             rec.lang = 'en-US';
-            document.getElementById('feedback').innerText = "듣고 있어요... 말씀하세요!";
             rec.start();
-
-            rec.onresult = async (event) => {
-                const userSpeech = event.results[0][0].transcript;
-                document.getElementById('feedback').innerText = "AI 선생님이 분석 중...";
-                const feedback = await getGeminiFeedback(userSpeech, dailyData[currentIndex].en);
-                document.getElementById('feedback').innerText = feedback;
-                stamps[currentIndex] = true;
-                updateUI();
+            rec.onresult = async (e) => {
+                const speech = e.results[0][0].transcript;
+                const fb = await getGeminiFeedback(speech, dailyData[currentIndex].en);
+                document.getElementById('feedback').innerText = fb;
+                
+                // 통계 저장
+                saveStudyRecord(dailyData[currentIndex].en);
             };
         }
 
-        async function getGeminiFeedback(userSpeech, targetText) {
+        function saveStudyRecord(sentence) {
+            const today = new Date().toLocaleDateString();
+            if (!stats.history.includes(sentence)) {
+                stats.total += 1;
+                stats.history.push(sentence);
+                if (stats.lastDate !== today) {
+                    // 간단한 연속 학습 계산
+                    stats.days = (stats.lastDate === "") ? 1 : stats.days + 1;
+                    stats.lastDate = today;
+                }
+                localStorage.setItem('jiyoungStats', JSON.stringify(stats));
+            }
+        }
+
+        async function getGeminiFeedback(speech, target) {
             const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
-            const prompt = `60대 지영 님을 위한 선생님이야. 문장 "${targetText}"를 학생이 "${userSpeech}"라고 발음했어. 다정하게 칭찬과 교정 팁을 한글 2문장으로 말하고 마지막엔 꼭 "참 잘하셨어요! 💮"라고 해줘.`;
+            const prompt = `지영 님 발음: "${speech}", 목표: "${target}". 다정하게 칭찬 한줄과 "참 잘하셨어요! 💮"라고 해줘.`;
             const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }) });
             const json = await res.json();
             return json.candidates[0].content.parts[0].text;
         }
 
-        window.speechSynthesis.onvoiceschanged = () => {}; // 목소리 로딩 대기용
+        function nextStep() { if (currentIndex < 4) { currentIndex++; updateUI(); } }
+        function prevStep() { if (currentIndex > 0) { currentIndex--; updateUI(); } }
+
         fetchDailySentences();
     </script>
 </body>
