@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>지영이의 영어 한 입</title>
+    <title>지영이의 영어공부</title>
     <style>
         :root { --primary: #ff4757; --secondary: #007aff; --bg: #fff9f9; }
         body { font-family: 'Apple SD Gothic Neo', sans-serif; text-align: center; padding: 0; margin: 0; background-color: var(--bg); color: #333; }
@@ -17,43 +17,40 @@
         .page { display: none; }
         .page.active { display: block; }
 
-        /* 공통 카드 스타일 */
-        .card { background: white; padding: 25px; border-radius: 25px; box-shadow: 0 8px 15px rgba(0,0,0,0.05); border: 1.5px solid #ffccd5; margin-bottom: 20px; }
+        .card { background: white; padding: 25px; border-radius: 25px; box-shadow: 0 8px 15px rgba(0,0,0,0.05); border: 1.5px solid #ffccd5; margin-bottom: 20px; min-height: 180px; display: flex; flex-direction: column; justify-content: center; }
         
-        /* 학습 화면 스타일 */
+        .meaning { font-size: 22px; color: #444; font-weight: bold; }
         .english { font-size: 28px; font-weight: bold; color: var(--secondary); margin: 10px 0; line-height: 1.2; }
-        .meaning { font-size: 20px; color: #444; font-weight: bold; }
         .pronunciation { font-size: 18px; color: #888; margin-bottom: 15px; }
-        .btn-group { display: flex; gap: 10px; margin: 15px 0; }
-        .nav-btn { flex: 1; padding: 12px; border-radius: 12px; border: 1px solid #ddd; background: white; cursor: pointer; }
-        .speak-btn { background: var(--primary); color: white; border: none; padding: 18px; font-size: 20px; border-radius: 15px; width: 100%; cursor: pointer; font-weight: bold; }
-        .tts-btn { background: #e1f5fe; color: #0288d1; border: none; padding: 8px 15px; border-radius: 50px; cursor: pointer; margin-bottom: 10px; }
         
-        /* 통계 화면 스타일 */
+        .btn-group { display: flex; gap: 10px; margin: 15px 0; }
+        .nav-btn { flex: 1; padding: 12px; border-radius: 12px; border: 1px solid #ddd; background: white; cursor: pointer; font-size: 16px; }
+        .speak-btn { background: var(--primary); color: white; border: none; padding: 18px; font-size: 20px; border-radius: 15px; width: 100%; cursor: pointer; font-weight: bold; box-shadow: 0 4px 0 #e03a49; }
+        .tts-btn { background: #e1f5fe; color: #0288d1; border: none; padding: 10px 20px; border-radius: 50px; cursor: pointer; font-size: 18px; font-weight: bold; margin-bottom: 10px; }
+        
         .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .stat-item { background: #fff5f5; padding: 20px; border-radius: 20px; }
+        .stat-item { background: white; padding: 20px; border-radius: 20px; border: 1px solid #eee; }
         .stat-val { font-size: 30px; font-weight: bold; color: var(--primary); display: block; }
-        .stat-lbl { font-size: 14px; color: #666; }
-        .history-list { text-align: left; margin-top: 20px; }
-        .history-item { padding: 10px; border-bottom: 1px solid #eee; font-size: 15px; }
+        .history-list { text-align: left; margin-top: 10px; background: white; border-radius: 15px; padding: 10px; }
+        .history-item { padding: 10px; border-bottom: 1px solid #f9f9f9; font-size: 16px; }
     </style>
 </head>
 <body>
 
     <div class="nav-tabs">
-        <div class="tab active" onclick="switchPage('study')">📖 학습하기</div>
-        <div class="tab" onclick="switchPage('stats')">📊 공부기록</div>
+        <div class="tab active" id="tab-study" onclick="switchPage('study')">📖 공부하기</div>
+        <div class="tab" id="tab-stats" onclick="switchPage('stats')">📊 공부기록</div>
     </div>
 
     <div class="container">
         <div id="study-page" class="page active">
             <div class="card">
-                <p id="loading-msg">문장을 불러오는 중...</p>
+                <p id="loading-msg">지영 님을 위한 문장을 가져오고 있습니다...</p>
                 <div id="content-area" style="display:none;">
                     <p class="meaning" id="lbl-meaning"></p>
                     <p class="english" id="lbl-english"></p>
                     <p class="pronunciation" id="lbl-pronunciation"></p>
-                    <button class="tts-btn" onclick="playTTS()">🔊 원어민 발음</button>
+                    <button class="tts-btn" onclick="playTTS()">🔊 원어민 발음 듣기</button>
                 </div>
             </div>
             <div class="btn-group">
@@ -61,48 +58,58 @@
                 <button class="nav-btn" onclick="nextStep()">다음 ➡️</button>
             </div>
             <button class="speak-btn" onclick="startRecognition()">🎤 내 발음 확인하기</button>
-            <div id="feedback" style="margin-top:15px; font-size:17px; color:#555;"></div>
+            <div id="feedback" style="margin-top:20px; font-size:18px; color:#555; line-height:1.5;"></div>
         </div>
 
         <div id="stats-page" class="page">
             <div class="stat-grid">
                 <div class="stat-item">
                     <span class="stat-val" id="stat-total">0</span>
-                    <span class="stat-lbl">누적 문장</span>
+                    <span style="font-size:14px; color:#666;">누적 학습</span>
                 </div>
                 <div class="stat-item">
                     <span class="stat-val" id="stat-days">0</span>
-                    <span class="stat-lbl">연속 학습일</span>
+                    <span style="font-size:14px; color:#666;">연속 학습일</span>
                 </div>
             </div>
-            <div class="card" style="margin-top:20px;">
-                <h3 style="margin-top:0;">최근 학습 내역</h3>
-                <div id="history-list" class="history-list">
-                    기록이 아직 없어요. 공부를 시작해볼까요?
-                </div>
-            </div>
+            <h3 style="text-align:left; margin: 20px 0 10px 10px;">최근 공부한 문장</h3>
+            <div id="history-list" class="history-list"></div>
         </div>
     </div>
 
     <script>
-        const API_KEY = "AIzaSyD4t-Mn7mUBBEk0c3m0n-yZHWN9zo0IB-c";
+        const API_KEY = "AIzaSyD4t-Mn7mUBBEk0c3m0n-yZHWN9zo0IB-c"; // 여기에 발급받은 키를 꼭 넣으세요!
         let currentIndex = 0;
         let dailyData = [];
-        
-        // 데이터 저장소 (LocalStorage 사용)
-        let stats = JSON.parse(localStorage.getItem('jiyoungStats')) || { total: 0, days: 1, lastDate: '', history: [] };
+        let stats = JSON.parse(localStorage.getItem('jiyoungStats')) || { total: 0, days: 0, lastDate: '', history: [] };
+
+        const fallbackData = [
+            { en: "How are you today?", ko: "오늘 기분 어떠세요?", pr: "하우 아 유 투데이?", words: "" },
+            { en: "Thank you for everything.", ko: "모든 게 감사합니다.", pr: "땡큐 포 에브리띵.", words: "" },
+            { en: "Where is the exit?", ko: "출구가 어디인가요?", pr: "웨어 이즈 디 에그짓?", words: "" },
+            { en: "I need some water.", ko: "물이 좀 필요해요.", pr: "아이 니드 썸 워터.", words: "" },
+            { en: "See you later.", ko: "다음에 또 봐요.", pr: "씨 유 레이터.", words: "" }
+        ];
 
         async function fetchDailySentences() {
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
-            const prompt = "Generate 5 travel English sentences for a 60-year-old Korean in JSON. Fields: en, ko, pr, words. ONLY JSON.";
+            const timer = setTimeout(() => { if(dailyData.length===0) useFallback(); }, 4000);
             try {
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
+                const prompt = "Generate 5 simple travel English sentences for a 60-year-old Korean in JSON. Fields: en, ko, pr. Provide ONLY a JSON array.";
                 const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }) });
                 const json = await res.json();
-                dailyData = JSON.parse(json.candidates[0].content.parts[0].text.replace(/```json|```/g, ""));
-                document.getElementById('loading-msg').style.display = 'none';
-                document.getElementById('content-area').style.display = 'block';
-                updateUI();
-            } catch (e) { console.error(e); }
+                let text = json.candidates[0].content.parts[0].text;
+                dailyData = JSON.parse(text.replace(/```json|```/g, ""));
+                clearTimeout(timer);
+                showContent();
+            } catch (e) { useFallback(); }
+        }
+
+        function useFallback() { dailyData = fallbackData; showContent(); }
+        function showContent() {
+            document.getElementById('loading-msg').style.display = 'none';
+            document.getElementById('content-area').style.display = 'block';
+            updateUI();
         }
 
         function updateUI() {
@@ -113,69 +120,71 @@
             updateStatsUI();
         }
 
-        function updateStatsUI() {
-            document.getElementById('stat-total').innerText = stats.total;
-            document.getElementById('stat-days').innerText = stats.days;
-            const hList = document.getElementById('history-list');
-            if(stats.history.length > 0) {
-                hList.innerHTML = stats.history.slice(-5).reverse().map(h => `<div class="history-item">✅ ${h}</div>`).join('');
-            }
+        function playTTS() {
+            window.speechSynthesis.cancel();
+            const ut = new SpeechSynthesisUtterance(dailyData[currentIndex].en);
+            const voices = window.speechSynthesis.getVoices();
+            const v = voices.find(v => v.name.includes('Google') || v.name.includes('Samantha')) || voices[0];
+            ut.voice = v; ut.pitch = 1.1; ut.rate = 0.8; ut.lang = 'en-US';
+            window.speechSynthesis.speak(ut);
         }
 
         function switchPage(pageId) {
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             document.getElementById(pageId + '-page').classList.add('active');
-            event.currentTarget.classList.add('active');
+            document.getElementById('tab-' + pageId).classList.add('active');
             if(pageId === 'stats') updateStatsUI();
         }
 
-        function playTTS() {
-            window.speechSynthesis.cancel();
-            const ut = new SpeechSynthesisUtterance(dailyData[currentIndex].en);
-            ut.pitch = 1.15; ut.rate = 0.85; ut.lang = 'en-US';
-            window.speechSynthesis.speak(ut);
+        function updateStatsUI() {
+            document.getElementById('stat-total').innerText = stats.total;
+            document.getElementById('stat-days').innerText = stats.days;
+            const list = document.getElementById('history-list');
+            list.innerHTML = stats.history.length ? stats.history.slice(-5).reverse().map(h => `<div class="history-item">💮 ${h}</div>`).join('') : "공부를 시작해볼까요?";
         }
 
         async function startRecognition() {
             const rec = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
             rec.lang = 'en-US';
+            document.getElementById('feedback').innerText = "지영 님의 목소리를 듣고 있어요...";
             rec.start();
             rec.onresult = async (e) => {
                 const speech = e.results[0][0].transcript;
+                document.getElementById('feedback').innerText = "AI 선생님이 분석 중...";
                 const fb = await getGeminiFeedback(speech, dailyData[currentIndex].en);
                 document.getElementById('feedback').innerText = fb;
-                
-                // 통계 저장
-                saveStudyRecord(dailyData[currentIndex].en);
+                saveRecord(dailyData[currentIndex].en);
             };
         }
 
-        function saveStudyRecord(sentence) {
+        function saveRecord(sentence) {
             const today = new Date().toLocaleDateString();
             if (!stats.history.includes(sentence)) {
-                stats.total += 1;
+                stats.total++;
                 stats.history.push(sentence);
                 if (stats.lastDate !== today) {
-                    // 간단한 연속 학습 계산
-                    stats.days = (stats.lastDate === "") ? 1 : stats.days + 1;
+                    stats.days++;
                     stats.lastDate = today;
                 }
                 localStorage.setItem('jiyoungStats', JSON.stringify(stats));
             }
         }
 
-        async function getGeminiFeedback(speech, target) {
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
-            const prompt = `지영 님 발음: "${speech}", 목표: "${target}". 다정하게 칭찬 한줄과 "참 잘하셨어요! 💮"라고 해줘.`;
-            const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }) });
-            const json = await res.json();
-            return json.candidates[0].content.parts[0].text;
+        async function getGeminiFeedback(s, t) {
+            try {
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
+                const prompt = `지영 님 발음: "${s}", 목표: "${t}". 다정하게 한줄 칭찬하고 "참 잘하셨어요! 💮"라고 해줘.`;
+                const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }) });
+                const json = await res.json();
+                return json.candidates[0].content.parts[0].text;
+            } catch(e) { return "지영 님, 정말 훌륭해요! 참 잘하셨어요! 💮"; }
         }
 
         function nextStep() { if (currentIndex < 4) { currentIndex++; updateUI(); } }
         function prevStep() { if (currentIndex > 0) { currentIndex--; updateUI(); } }
 
+        window.speechSynthesis.onvoiceschanged = () => {};
         fetchDailySentences();
     </script>
 </body>
