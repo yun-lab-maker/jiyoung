@@ -7,34 +7,29 @@
     <style>
         body { font-family: 'Apple SD Gothic Neo', sans-serif; text-align: center; padding: 20px; background-color: #fff9f9; color: #333; }
         .container { max-width: 500px; margin: auto; background: white; padding: 30px; border-radius: 30px; box-shadow: 0 10px 20px rgba(0,0,0,0.05); border: 2px solid #ffccd5; }
-        .welcome { font-size: 24px; font-weight: bold; color: #ff4757; margin-bottom: 20px; }
-        .card { background: #fff5f5; padding: 25px; border-radius: 20px; margin-bottom: 20px; min-height: 150px; display: flex; flex-direction: column; justify-content: center; }
+        .card { background: #fff5f5; padding: 25px; border-radius: 20px; margin-bottom: 20px; min-height: 180px; display: flex; flex-direction: column; justify-content: center; }
         .meaning { font-size: 22px; color: #444; margin-bottom: 8px; font-weight: bold; }
-        .english { font-size: 28px; font-weight: bold; color: #007aff; margin-bottom: 10px; }
-        .pronunciation { font-size: 20px; color: #888; }
-        
-        .word-box { text-align: left; background: #f1f2f6; padding: 15px; border-radius: 15px; margin-bottom: 20px; font-size: 18px; min-height: 100px; }
-        .word-item { margin-bottom: 8px; }
-        .word-en { font-weight: bold; color: #2f3542; }
-
+        .english { font-size: 28px; font-weight: bold; color: #007aff; margin-bottom: 10px; line-height: 1.2; }
+        .pronunciation { font-size: 20px; color: #888; margin-bottom: 15px; }
+        .word-box { text-align: left; background: #f1f2f6; padding: 20px; border-radius: 15px; margin-bottom: 20px; font-size: 18px; min-height: 100px; }
         .btn-group { display: flex; gap: 10px; margin-bottom: 15px; }
         .nav-btn { flex: 1; padding: 15px; font-size: 18px; border-radius: 15px; border: 1px solid #ddd; cursor: pointer; background: white; }
-        .speak-btn { background: #00b894; color: white; border: none; padding: 20px; font-size: 22px; border-radius: 20px; width: 100%; cursor: pointer; font-weight: bold; margin-bottom: 10px; }
-        .tts-btn { background: #74ebd5; color: #2f3542; border: none; padding: 10px; border-radius: 10px; cursor: pointer; font-size: 16px; margin-top: 10px; }
-        
-        #feedback { margin-top: 20px; font-size: 18px; line-height: 1.5; color: #2d3436; padding: 15px; background: #f0f2f5; border-radius: 15px; border-left: 5px solid #ff4757; }
+        .speak-btn { background: #ff4757; color: white; border: none; padding: 20px; font-size: 22px; border-radius: 20px; width: 100%; cursor: pointer; font-weight: bold; }
+        .tts-btn { background: #e1f5fe; color: #0288d1; border: none; padding: 10px 20px; border-radius: 50px; cursor: pointer; font-size: 18px; font-weight: bold; margin-bottom: 10px; border: 1px solid #b3e5fc; }
+        #feedback { margin-top: 20px; font-size: 19px; line-height: 1.6; color: #2d3436; padding: 15px; background: #f0f2f5; border-radius: 15px; border-left: 5px solid #ff4757; min-height: 60px; }
         .stamps { font-size: 40px; margin-top: 15px; }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="welcome">🌸 지영 님, 영어 한 입! 🌸</div>
-        
         <div class="card">
-            <p class="meaning" id="lbl-meaning"></p>
-            <p class="english" id="lbl-english"></p>
-            <p class="pronunciation" id="lbl-pronunciation"></p>
-            <button class="tts-btn" onclick="playTTS()">🔊 원어민 발음 듣기</button>
+            <p id="loading-msg" style="font-size: 18px; color: #888;">AI가 지영 님을 위한 오늘의 문장을 준비 중입니다...</p>
+            <div id="content-area" style="display:none;">
+                <p class="meaning" id="lbl-meaning"></p>
+                <p class="english" id="lbl-english"></p>
+                <p class="pronunciation" id="lbl-pronunciation"></p>
+                <button class="tts-btn" onclick="playTTS()">🔊 원어민 발음 듣기</button>
+            </div>
         </div>
 
         <div class="word-box" id="lbl-words"></div>
@@ -45,109 +40,89 @@
         </div>
 
         <button class="speak-btn" onclick="startRecognition()">🎤 내 발음 확인하기</button>
-        <div id="feedback">버튼을 누르고 문장을 읽어보세요!</div>
-        
+        <div id="feedback">준비가 되면 버튼을 누르고 읽어주세요!</div>
         <div class="stamps" id="stamps">⚪ ⚪ ⚪ ⚪ ⚪</div>
     </div>
 
     <script>
-        const API_KEY = "AIzaSyD4t-Mn7mUBBEk0c3m0n-yZHWN9zo0IB-c"; 
+        const API_KEY = "AIzaSyD4t-Mn7mUBBEk0c3m0n-yZHWN9zo0IB-c"; //
         let currentIndex = 0;
+        let dailyData = [];
         let stamps = [false, false, false, false, false];
 
-        const data = [
-            { 
-                en: "Excuse me, can you tell me the way?", 
-                ko: "실례지만, 길 좀 알려주실 수 있나요?", 
-                pr: "익스큐즈 미, 캔 유 텔 미 더 웨이?",
-                words: "<b>Excuse me:</b> 실례합니다<br><b>Tell:</b> 알려주다<br><b>Way:</b> 길" 
-            },
-            { 
-                en: "Where is the nearest station?", 
-                ko: "가장 가까운 역이 어디인가요?", 
-                pr: "웨어 이즈 더 니어리스트 스테이션?",
-                words: "<b>Where:</b> 어디<br><b>Nearest:</b> 가장 가까운<br><b>Station:</b> 역" 
-            },
-            { 
-                en: "How long does it take?", 
-                ko: "얼마나 오래 걸리나요?", 
-                pr: "하우 롱 더즈 잇 테이크?",
-                words: "<b>How long:</b> 얼마나 길게<br><b>Take:</b> (시간이) 걸리다" 
-            },
-            { 
-                en: "Can I walk there?", 
-                ko: "거기까지 걸어갈 수 있나요?", 
-                pr: "캔 아이 워크 데어?",
-                words: "<b>Walk:</b> 걷다<br><b>There:</b> 거기" 
-            },
-            { 
-                en: "I'm lost. Help me, please.", 
-                ko: "길을 잃었어요. 도와주세요.", 
-                pr: "아임 로스트. 헬프 미, 플리즈.",
-                words: "<b>Lost:</b> 길을 잃은<br><b>Help:</b> 돕다" 
+        // 1. 매일 다른 문장 5개 가져오기 (Gemini API)
+        async function fetchDailySentences() {
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
+            const prompt = "60대 한국인을 위한 실용 여행 영어 5문장을 JSON 배열 형태로 생성해줘. 각 객체는 en(영어), ko(한글뜻), pr(한글발음), words(주요단어 뜻 설명) 필드를 가져야 해. 다른 설명 없이 JSON 코드만 보내줘.";
+            
+            try {
+                const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }) });
+                const json = await res.json();
+                let text = json.candidates[0].content.parts[0].text;
+                dailyData = JSON.parse(text.replace(/```json|```/g, ""));
+                document.getElementById('loading-msg').style.display = 'none';
+                document.getElementById('content-area').style.display = 'block';
+                updateUI();
+            } catch (e) {
+                console.error("데이터 로딩 실패", e);
+                document.getElementById('loading-msg').innerText = "잠시 후 다시 시도해주세요.";
             }
-        ];
+        }
 
         function updateUI() {
-            const item = data[currentIndex];
+            const item = dailyData[currentIndex];
             document.getElementById('lbl-meaning').innerText = item.ko;
             document.getElementById('lbl-english').innerText = item.en;
             document.getElementById('lbl-pronunciation').innerText = item.pr;
             document.getElementById('lbl-words').innerHTML = item.words;
-            updateStamps();
-            document.getElementById('feedback').innerText = (currentIndex + 1) + "번 문장입니다. 공부를 시작해볼까요?";
+            document.getElementById('stamps').innerHTML = stamps.map(s => s ? "💮" : "⚪").join(" ");
+            document.getElementById('feedback').innerText = (currentIndex + 1) + "번 문장입니다.";
         }
 
-        function nextStep() {
-            if (currentIndex < data.length - 1) { currentIndex++; updateUI(); }
-        }
-
-        function prevStep() {
-            if (currentIndex > 0) { currentIndex--; updateUI(); }
-        }
-
+        // 2. 선명하고 맑은 톤의 원어민 발음 설정
         function playTTS() {
-            const utterance = new SpeechSynthesisUtterance(data[currentIndex].en);
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(dailyData[currentIndex].en);
+            const voices = window.speechSynthesis.getVoices();
+            // 가장 클리어한 목소리 찾기
+            const preferredVoice = voices.find(v => v.name.includes('Google US English') || v.name.includes('Samantha'));
+            if (preferredVoice) utterance.voice = preferredVoice;
+            
             utterance.lang = 'en-US';
-            utterance.rate = 0.8; // 지영 님이 듣기 편하게 조금 천천히
+            utterance.rate = 0.85; // 단어 구분이 잘 되게 약간 천천히
+            utterance.pitch = 1.15; // 맑고 명랑한 고음역대 톤으로 설정
             window.speechSynthesis.speak(utterance);
         }
 
-        function updateStamps() {
-            document.getElementById('stamps').innerHTML = stamps.map(s => s ? "💮" : "⚪").join(" ");
-        }
+        function nextStep() { if (currentIndex < 4) { currentIndex++; updateUI(); } }
+        function prevStep() { if (currentIndex > 0) { currentIndex--; updateUI(); } }
 
         async function startRecognition() {
-            const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-            recognition.lang = 'en-US';
-            document.getElementById('feedback').innerText = "지영 님의 목소리를 듣고 있어요...";
-            recognition.start();
+            const rec = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+            rec.lang = 'en-US';
+            document.getElementById('feedback').innerText = "듣고 있어요... 말씀하세요!";
+            rec.start();
 
-            recognition.onresult = async (event) => {
+            rec.onresult = async (event) => {
                 const userSpeech = event.results[0][0].transcript;
-                const targetText = data[currentIndex].en;
-                document.getElementById('feedback').innerText = "AI 선생님이 분석 중입니다...";
-
-                const feedback = await getGeminiFeedback(userSpeech, targetText);
+                document.getElementById('feedback').innerText = "AI 선생님이 분석 중...";
+                const feedback = await getGeminiFeedback(userSpeech, dailyData[currentIndex].en);
                 document.getElementById('feedback').innerText = feedback;
-                
                 stamps[currentIndex] = true;
-                updateStamps();
+                updateUI();
             };
         }
 
         async function getGeminiFeedback(userSpeech, targetText) {
             const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
-            const prompt = `당신은 60대 여성 '지영' 님의 다정한 영어 선생님입니다. 목표: "${targetText}", 지영 님의 발음: "${userSpeech}". 지영 님의 이름을 부르며 따뜻하게 칭찬하고 발음 팁을 한국어로 1문장으로 말해주세요. 마지막에 "참 잘하셨어요! 💮"라고 해주세요.`;
-            try {
-                const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }) });
-                const json = await res.json();
-                return json.candidates[0].content.parts[0].text;
-            } catch (e) { return "지영 님, 정말 훌륭해요! 참 잘하셨어요! 💮"; }
+            const prompt = `60대 지영 님을 위한 선생님이야. 문장 "${targetText}"를 학생이 "${userSpeech}"라고 발음했어. 다정하게 칭찬과 교정 팁을 한글 2문장으로 말하고 마지막엔 꼭 "참 잘하셨어요! 💮"라고 해줘.`;
+            const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }) });
+            const json = await res.json();
+            return json.candidates[0].content.parts[0].text;
         }
 
-        updateUI(); // 초기 화면 실행
+        window.speechSynthesis.onvoiceschanged = () => {}; // 목소리 로딩 대기용
+        fetchDailySentences();
     </script>
 </body>
-
 </html>
