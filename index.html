@@ -14,31 +14,48 @@
         .page { display: none; }
         .page.active { display: block; }
         .situation-tag { background: #ffeaa7; color: #d63031; padding: 5px 15px; border-radius: 50px; font-weight: bold; font-size: 14px; margin-bottom: 15px; display: inline-block; }
+        
         .card { background: white; padding: 35px 20px; border-radius: 25px; box-shadow: 0 8px 15px rgba(0,0,0,0.05); border: 2px solid #ffccd5; margin-bottom: 15px; position: relative; min-height: 180px; display: flex; flex-direction: column; justify-content: center; }
         .card::before { content: attr(data-speaker); position: absolute; top: -15px; left: 20px; background: #555; color: white; padding: 4px 15px; border-radius: 10px; font-size: 14px; font-weight: bold; }
         .card.user-card { border-color: var(--secondary); background: #f0f7ff; }
         .card.user-card::before { background: var(--secondary); }
+        
         .meaning { font-size: 22px; color: #444; font-weight: bold; margin-bottom: 10px; }
         .english { font-size: 26px; font-weight: bold; color: var(--secondary); margin: 10px 0; line-height: 1.3; }
         .pronunciation { font-size: 18px; color: #888; margin-bottom: 15px; }
-        .full-script { background: white; padding: 25px; border-radius: 25px; border: 2px solid #ddd; text-align: left; margin-top: 20px; display: none; }
-        .script-line { margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #f0f0f0; }
-        .word-box { text-align: left; background: #f1f2f6; padding: 20px; border-radius: 15px; margin-top: 20px; font-size: 17px; border-left: 5px solid #ced4da; display: none; }
-        .history-item { background: white; padding: 15px; border-radius: 15px; border: 1px solid #eee; margin-bottom: 10px; text-align: left; cursor: pointer; position: relative; }
-        .history-item::after { content: '보기 >'; position: absolute; right: 15px; top: 22px; color: #ccc; font-size: 12px; }
-        #review-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1000; overflow-y: auto; }
-        .modal-content { background: white; width: 90%; max-width: 450px; margin: 50px auto; border-radius: 25px; padding: 25px; position: relative; }
+        
         .btn-group { display: flex; gap: 10px; margin: 20px 0; }
         .nav-btn { flex: 1; padding: 18px; border-radius: 15px; border: none; background: var(--primary); color: white; cursor: pointer; font-size: 18px; font-weight: bold; box-shadow: 0 5px 0 #e03a49; }
         .nav-btn.prev { background: #bbb; box-shadow: 0 5px 0 #999; }
         .nav-btn:disabled { background: #eee; color: #ccc; box-shadow: none; }
+
+        .full-script { background: white; padding: 25px; border-radius: 25px; border: 2px solid #ddd; text-align: left; margin-top: 20px; display: none; }
+        .script-line { margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #f0f0f0; }
+        .word-box { text-align: left; background: #f1f2f6; padding: 20px; border-radius: 15px; margin-top: 20px; font-size: 17px; border-left: 5px solid #ced4da; display: none; }
+        
+        #history-list { margin-top: 10px; }
+        .history-item { background: white; padding: 15px; border-radius: 15px; border: 1px solid #eee; margin-bottom: 10px; text-align: left; cursor: pointer; position: relative; }
+        .history-item::after { content: '보기 >'; position: absolute; right: 15px; top: 22px; color: #ccc; font-size: 12px; }
+
+        #review-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1000; overflow-y: auto; }
+        .modal-content { background: white; width: 90%; max-width: 450px; margin: 50px auto; border-radius: 25px; padding: 25px; position: relative; }
+
         .tts-btn { background: #e1f5fe; color: #0288d1; border: none; padding: 10px 20px; border-radius: 50px; cursor: pointer; font-size: 16px; font-weight: bold; align-self: center; }
         .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
         .stat-item { background: white; padding: 20px; border-radius: 20px; border: 1px solid #eee; }
         .stat-val { font-size: 30px; font-weight: bold; color: var(--primary); display: block; }
+        
+        #loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 2000; }
+        .spinner { border: 5px solid #f3f3f3; border-top: 5px solid var(--primary); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin-bottom: 20px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
+    <div id="loading-overlay">
+        <div class="spinner"></div>
+        <div style="font-weight: bold; color: #555;">지영 님의 오늘의 주제를 정하고 있어요...</div>
+    </div>
+
     <div class="nav-tabs">
         <div class="tab active" id="tab-study" onclick="switchPage('study')">📖 대화 연습</div>
         <div class="tab" id="tab-stats" onclick="switchPage('stats')">📊 공부 기록</div>
@@ -47,7 +64,7 @@
     <div class="container">
         <div id="study-page" class="page active">
             <div id="content-area">
-                <div class="situation-tag" id="lbl-situation">📍 상황: 식당에서 주문하기</div>
+                <div class="situation-tag" id="lbl-situation">📍 상황 분석 중...</div>
                 <div class="card" id="speaker-card" data-speaker="직원">
                     <p class="meaning" id="lbl-meaning"></p>
                     <p class="english" id="lbl-english"></p>
@@ -95,42 +112,27 @@
         let dialogue = []; 
         let scenarioInfo = "";
         let wordsInfo = "";
-        
-        // 데이터 불러오기 및 안전 검증
         let stats = JSON.parse(localStorage.getItem('jiyoungStats')) || { total: 0, days: 0, lastDate: '', history: [] };
         
-        // 만약 history가 단순 문자열 배열이면 초기화 (에러 방지용 세척)
+        // 데이터 안전 세척 (이전 문자열 데이터 방지)
         if (stats.history.length > 0 && typeof stats.history[0] === 'string') {
-            stats.history = [];
-            stats.total = 0;
+            stats.history = []; stats.total = 0;
             localStorage.setItem('jiyoungStats', JSON.stringify(stats));
         }
-
-        const initialData = {
-            situation: "식당에서 메뉴 주문하기",
-            lines: [
-                {speaker:'Staff', en:'Welcome! Are you ready to order?', ko:'어서오세요! 주문하시겠어요?', pr:'웰컴! 아 유 레디 투 오더?'},
-                {speaker:'Jiyoung', en:'Yes, what is the best dish here?', ko:'네, 여기서 가장 맛있는 요리가 뭐예요?', pr:'예스, 왓 이즈 더 베스트 디쉬 히어?'},
-                {speaker:'Staff', en:'Our steak is very popular.', ko:'저희 스테이크가 아주 인기있습니다.', pr:'아워 스테이크 이즈 베리 파퓰러.'},
-                {speaker:'Jiyoung', en:'Okay, I will have the steak.', ko:'좋아요, 스테이크로 할게요.', pr:'오케이, 아이 윌 해브 더 스테이크.'},
-                {speaker:'Staff', en:'Great. Anything to drink?', ko:'좋습니다. 마실 것도 필요하세요?', pr:'그레이트. 애니띵 투 드링크?'},
-                {speaker:'Jiyoung', en:'Just water, please.', ko:'물만 주세요.', pr:'저스트 워터, 플리즈.'}
-            ],
-            words: "<b>Order:</b> 주문하다<br><b>Dish:</b> 요리"
-        };
 
         async function fetchDialogue() {
             try {
                 const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
-                const prompt = "Generate 6-line travel English dialogue between Staff and Jiyoung. JSON: {situation, lines:[{speaker,en,ko,pr}], words}";
+                const prompt = "Randomly pick one travel context (Airport, Hotel, Taxi, Shop, Street). Generate 6-line English dialogue between Staff and Jiyoung. Return ONLY JSON: {situation, lines:[{speaker,en,ko,pr}], words}";
                 const res = await fetch(url, { method: 'POST', body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }) });
                 const json = await res.json();
                 const data = JSON.parse(json.candidates[0].content.parts[0].text.replace(/```json|```/g, ""));
+                
                 dialogue = data.lines; scenarioInfo = data.situation; wordsInfo = data.words;
                 renderStep();
+                document.getElementById('loading-overlay').style.display = 'none';
             } catch (e) { 
-                dialogue = initialData.lines; scenarioInfo = initialData.situation; wordsInfo = initialData.words;
-                renderStep();
+                alert("AI가 새로운 대본을 준비하는 데 실패했어요. 새로고침을 해주세요!");
             }
         }
 
@@ -167,9 +169,8 @@
 
         function saveStats() {
             const today = new Date().toLocaleDateString();
-            const record = { date: today, situation: scenarioInfo, lines: dialogue, words: wordsInfo };
             stats.total++;
-            stats.history.push(record);
+            stats.history.push({ date: today, situation: scenarioInfo, lines: dialogue, words: wordsInfo });
             if (stats.lastDate !== today) { stats.days++; stats.lastDate = today; }
             localStorage.setItem('jiyoungStats', JSON.stringify(stats));
         }
@@ -187,23 +188,19 @@
             document.getElementById('stat-days').innerText = stats.days;
             const historyDiv = document.getElementById('history-list');
             if (stats.history.length === 0) {
-                historyDiv.innerHTML = "<p style='color:#999; text-align:center;'>아직 공부 기록이 없어요.</p>";
+                historyDiv.innerHTML = "<p style='color:#999;'>아직 기록이 없어요.</p>";
                 return;
             }
-            historyDiv.innerHTML = stats.history.slice(-10).reverse().map((h, i) => {
-                // h가 객체인지 확인 (undefined 방지)
-                if(!h || !h.situation) return "";
-                const idx = stats.history.length - 1 - i;
-                return `<div class="history-item" onclick="openReview(${idx})">
+            historyDiv.innerHTML = stats.history.slice(-10).reverse().map((h, i) => `
+                <div class="history-item" onclick="openReview(${stats.history.length - 1 - i})">
                     <span style="font-size:12px; color:#999;">${h.date}</span><br>
                     <strong>💮 ${h.situation}</strong>
-                </div>`;
-            }).join('');
+                </div>
+            `).join('');
         }
 
         function openReview(index) {
             const data = stats.history[index];
-            if(!data) return;
             document.getElementById('modal-title').innerText = "📜 " + data.situation;
             document.getElementById('modal-body').innerHTML = data.lines.map(l => `
                 <div style="margin-bottom:12px;">
@@ -216,13 +213,13 @@
         }
 
         function closeModal() { document.getElementById('review-modal').style.display = 'none'; }
-        
         function playCurrentTTS() {
             window.speechSynthesis.cancel();
             const ut = new SpeechSynthesisUtterance(dialogue[currentIndex].en);
             ut.lang = 'en-US'; ut.rate = 0.8; window.speechSynthesis.speak(ut);
         }
 
+        // 시작하자마자 AI 대본 가져오기
         fetchDialogue();
     </script>
 </body>
