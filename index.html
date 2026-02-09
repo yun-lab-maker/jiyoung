@@ -6,56 +6,42 @@
     <title>지영이의 영어 공부</title>
     <style>
         :root { --primary: #ff4757; --secondary: #007aff; --bg: #fff9f9; }
-        body { font-family: 'Apple SD Gothic Neo', sans-serif; text-align: center; padding: 0; margin: 0; background-color: var(--bg); color: #333; }
-        .container { max-width: 500px; margin: 20px auto; padding: 0 20px; box-sizing: border-box; }
-        .situation-tag { background: #ffeaa7; color: #d63031; padding: 5px 15px; border-radius: 50px; font-weight: bold; font-size: 14px; margin-bottom: 15px; display: inline-block; }
-        .card { background: white; padding: 35px 20px; border-radius: 25px; box-shadow: 0 8px 15px rgba(0,0,0,0.05); border: 2px solid #ffccd5; margin-bottom: 15px; position: relative; min-height: 200px; display: flex; flex-direction: column; justify-content: center; }
-        .card::before { content: attr(data-speaker); position: absolute; top: -15px; left: 20px; background: #555; color: white; padding: 4px 15px; border-radius: 10px; font-size: 14px; font-weight: bold; }
-        .card.user-card { border-color: var(--secondary); background: #f0f7ff; }
-        .card.user-card::before { background: var(--secondary); }
-        .meaning { font-size: 20px; color: #444; font-weight: bold; margin-bottom: 10px; }
-        .english { font-size: 24px; font-weight: bold; color: var(--secondary); margin: 10px 0; line-height: 1.3; }
-        .pronunciation { font-size: 18px; color: #888; }
-        .nav-btn { width: 100%; padding: 18px; border-radius: 15px; border: none; background: var(--primary); color: white; cursor: pointer; font-size: 18px; font-weight: bold; box-shadow: 0 5px 0 #e03a49; margin-top: 10px; }
-        #loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 2000; }
-        .spinner { border: 5px solid #f3f3f3; border-top: 5px solid var(--primary); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin-bottom: 20px; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        body { font-family: 'Apple SD Gothic Neo', sans-serif; text-align: center; padding: 20px; margin: 0; background-color: var(--bg); }
+        .container { max-width: 400px; margin: 0 auto; }
+        .situation-tag { background: #ffeaa7; color: #d63031; padding: 8px 20px; border-radius: 50px; font-weight: bold; margin-bottom: 20px; display: inline-block; }
+        .card { background: white; padding: 40px 20px; border-radius: 30px; box-shadow: 0 10px 20px rgba(0,0,0,0.05); border: 2px solid #ffccd5; margin-bottom: 20px; }
+        .english { font-size: 24px; font-weight: bold; color: var(--secondary); margin-bottom: 10px; line-height: 1.3; }
+        .meaning { font-size: 18px; color: #555; margin-bottom: 10px; }
+        .pronunciation { font-size: 16px; color: #999; }
+        .nav-btn { width: 100%; padding: 20px; border-radius: 20px; border: none; background: var(--primary); color: white; cursor: pointer; font-size: 18px; font-weight: bold; box-shadow: 0 5px 0 #e03a49; }
+        #loading { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; display: flex; justify-content: center; align-items: center; z-index: 1000; font-weight: bold; }
     </style>
 </head>
 <body>
-    <div id="loading-overlay">
-        <div class="spinner"></div>
-        <div style="font-weight: bold; color: #555;">지영 님을 위한 새로운 대본을 만드는 중...</div>
-    </div>
+    <div id="loading">지영 님의 새로운 대본을 가져오는 중...</div>
 
     <div class="container">
-        <div id="study-page">
-            <div class="situation-tag" id="lbl-situation">상황 준비 중</div>
-            <div class="card" id="speaker-card" data-speaker="대기">
-                <p class="meaning" id="lbl-meaning"></p>
-                <p class="english" id="lbl-english"></p>
-                <p class="pronunciation" id="lbl-pronunciation"></p>
-                <button onclick="playTTS()" style="background:#e1f5fe; color:#0288d1; border:none; padding:8px 15px; border-radius:50px; cursor:pointer; font-weight:bold; margin-top:15px;">🔊 소리 듣기</button>
-            </div>
-            <button class="nav-btn" id="btn-next" onclick="nextStep()">다음 문장 ➡️</button>
-            <button class="nav-btn" id="btn-restart" style="display:none; background:#555; box-shadow:0 5px 0 #333;" onclick="location.reload()">오늘의 다른 공부 하기 🔄</button>
+        <div class="situation-tag" id="lbl-situation">준비 중</div>
+        <div class="card">
+            <div class="meaning" id="lbl-meaning"></div>
+            <div class="english" id="lbl-english"></div>
+            <div class="pronunciation" id="lbl-pronunciation"></div>
         </div>
+        <button class="nav-btn" id="btn-next" onclick="nextStep()">다음 문장 ➡️</button>
+        <button class="nav-btn" id="btn-restart" style="display:none;" onclick="location.reload()">다른 대화 하기 🔄</button>
     </div>
 
     <script>
-        // [중요] 지영 님의 API KEY를 아래에 꼭 넣어주세요!
-        const API_KEY = "AIzaSyD4t-Mn7mUBBEk0c3m0n-yZHWN9zo0IB-c";
+        // 1. 여기에 키를 넣으세요 (따옴표 필수!)
+        const API_KEY = "AIzaSyD4t-Mn7mUBBEk0c3m0n-yZHWN9zo0IB-c"; 
 
         let dialogue = [];
         let currentIndex = 0;
 
         async function fetchDialogue() {
-            // 기존에 꼬여있을 수 있는 캐시 데이터를 한 번 비웁니다.
-            localStorage.removeItem('jiyoungStats'); 
-
             try {
                 const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
-                const prompt = "Pick a random travel situation (Airport, Shopping, Taxi, Street, etc. NOT breakfast). Generate 6-line dialogue Staff vs Jiyoung. Return ONLY JSON: { \"situation\": \"string\", \"lines\": [ { \"speaker\": \"Staff or Jiyoung\", \"en\": \"string\", \"ko\": \"한국어\", \"pr\": \"발음\" } ] }";
+                const prompt = "Generate a 6-line travel English dialogue. Random situation (NOT breakfast). Return ONLY JSON: { \"situation\": \"string\", \"lines\": [ { \"en\": \"string\", \"ko\": \"한국어\", \"pr\": \"발음\" } ] }";
 
                 const res = await fetch(url, {
                     method: 'POST',
@@ -64,27 +50,28 @@
                 });
 
                 const json = await res.json();
-                let rawText = json.candidates[0].content.parts[0].text;
                 
-                // 어떤 형식으로 와도 JSON만 쏙 뽑아내는 강력 필터
-                const data = JSON.parse(rawText.match(/\{[\s\S]*\}/)[0]);
+                // 에러 체크 로직 강화
+                if (json.error) {
+                    alert("API 키가 잘못되었습니다: " + json.error.message);
+                    return;
+                }
+
+                const rawText = json.candidates[0].content.parts[0].text.replace(/```json/g, "").replace(/```/g, "").trim();
+                const data = JSON.parse(rawText);
                 
                 dialogue = data.lines;
-                document.getElementById('lbl-situation').innerText = "📍 상황: " + data.situation;
-                document.getElementById('loading-overlay').style.display = 'none';
+                document.getElementById('lbl-situation').innerText = "📍 " + data.situation;
+                document.getElementById('loading').style.display = 'none';
                 render();
             } catch (e) {
-                alert("API 키를 확인하시거나 잠시 후 새로고침 해주세요!");
+                alert("연결에 실패했습니다. 키를 확인하고 1분 뒤 다시 시도해 주세요!");
                 console.error(e);
             }
         }
 
         function render() {
             const line = dialogue[currentIndex];
-            const card = document.getElementById('speaker-card');
-            card.setAttribute('data-speaker', line.speaker === 'Jiyoung' ? "지영" : "직원");
-            if(line.speaker === 'Jiyoung') card.classList.add('user-card'); else card.classList.remove('user-card');
-            
             document.getElementById('lbl-meaning').innerText = line.ko;
             document.getElementById('lbl-english').innerText = line.en;
             document.getElementById('lbl-pronunciation').innerText = line.pr;
@@ -95,18 +82,10 @@
                 currentIndex++;
                 render();
             } else {
-                document.getElementById('speaker-card').style.display = 'none';
+                alert("오늘의 연습 완료! 멋져요, 지영 님! 💮");
                 document.getElementById('btn-next').style.display = 'none';
-                document.getElementById('lbl-situation').innerText = "🎉 오늘의 학습 완료!";
                 document.getElementById('btn-restart').style.display = 'block';
             }
-        }
-
-        function playTTS() {
-            window.speechSynthesis.cancel();
-            const ut = new SpeechSynthesisUtterance(dialogue[currentIndex].en);
-            ut.lang = 'en-US';
-            window.speechSynthesis.speak(ut);
         }
 
         fetchDialogue();
