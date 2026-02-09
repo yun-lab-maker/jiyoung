@@ -7,63 +7,76 @@
         :root { --primary: #ff4757; --secondary: #007aff; --bg: #fff9f9; }
         body { font-family: 'Apple SD Gothic Neo', sans-serif; text-align: center; padding: 20px; background-color: var(--bg); margin: 0; }
         .container { max-width: 400px; margin: 0 auto; }
-        .situation-tag { background: #ffeaa7; color: #d63031; padding: 10px 20px; border-radius: 50px; font-weight: bold; margin-bottom: 25px; display: inline-block; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
-        .card { background: white; padding: 40px 20px; border-radius: 30px; box-shadow: 0 10px 20px rgba(0,0,0,0.05); border: 2px solid #ffccd5; margin-bottom: 25px; min-height: 200px; display: flex; flex-direction: column; justify-content: center; }
+        .situation-tag { background: #ffeaa7; color: #d63031; padding: 10px 20px; border-radius: 50px; font-weight: bold; margin-bottom: 25px; display: inline-block; }
+        .card { background: white; padding: 40px 20px; border-radius: 30px; box-shadow: 0 10px 20px rgba(0,0,0,0.05); border: 2px solid #ffccd5; margin-bottom: 15px; min-height: 180px; display: flex; flex-direction: column; justify-content: center; position: relative; }
         .english { font-size: 24px; font-weight: bold; color: var(--secondary); margin-bottom: 12px; line-height: 1.3; }
         .meaning { font-size: 18px; color: #444; margin-bottom: 8px; }
-        .nav-btn { width: 100%; padding: 20px; border-radius: 20px; border: none; background: var(--primary); color: white; cursor: pointer; font-size: 19px; font-weight: bold; box-shadow: 0 6px 0 #e03a49; }
-        .nav-btn:active { transform: translateY(3px); box-shadow: 0 3px 0 #e03a49; }
+        
+        /* 버튼 스타일 */
+        .btn-group { display: flex; gap: 10px; margin-bottom: 20px; }
+        .nav-btn { flex: 1; padding: 18px; border-radius: 15px; border: none; background: var(--primary); color: white; cursor: pointer; font-size: 17px; font-weight: bold; box-shadow: 0 4px 0 #e03a49; }
+        .sub-btn { background: #555; box-shadow: 0 4px 0 #333; font-size: 14px; padding: 10px; }
+        
+        /* 전체 대본 박스 */
+        #script-board { background: #fff; text-align: left; padding: 20px; border-radius: 20px; margin-top: 20px; display: none; border: 1px dashed #ff4757; }
+        .script-item { margin-bottom: 15px; font-size: 15px; }
+        .script-item b { color: var(--secondary); }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="situation-tag" id="lbl-situation">📍 준비 중...</div>
+        
         <div class="card">
             <div class="meaning" id="lbl-meaning"></div>
             <div class="english" id="lbl-english"></div>
+            <button class="nav-btn sub-btn" onclick="playCurrent()">🔊 발음 듣기</button>
         </div>
-        <button class="nav-btn" id="btn-next" onclick="nextStep()">다음 문장 ➡️</button>
-        <button class="nav-btn" id="btn-restart" style="display:none; background:#555; box-shadow: 0 6px 0 #333;" onclick="location.reload()">다른 상황 연습 🔄</button>
+
+        <div class="btn-group">
+            <button class="nav-btn" id="btn-next" onclick="nextStep()">다음 문장 ➡️</button>
+        </div>
+        
+        <button class="nav-btn sub-btn" style="width:100%;" onclick="toggleFullScript()">📜 전체 대본 보기/닫기</button>
+        
+        <div id="script-board"></div>
+        
+        <button class="nav-btn" id="btn-restart" style="display:none; margin-top:20px; background:#007aff; box-shadow: 0 4px 0 #0056b3;" onclick="location.reload()">다른 주제로 공부하기 🔄</button>
     </div>
 
     <script>
-        // 여기에 상황을 무한정 추가할 수 있어요!
         const scripts = [
-            { sit: "입국 심사대", lines: [
-                {en:"What's the purpose of your visit?", ko:"방문 목적이 무엇인가요?"},
-                {en:"I'm here for sightseeing.", ko:"관광하러 왔습니다."},
-                {en:"How long will you stay?", ko:"얼마나 머무실 건가요?"}
+            { sit: "카페에서 주문하기", lines: [
+                {en:"I'd like an iced Americano, please.", ko:"아이스 아메리카노 한 잔 주세요."},
+                {en:"Anything else for you?", ko:"더 필요하신 거 없으세요?"},
+                {en:"That's all. How much is it?", ko:"그게 다예요. 얼마인가요?"}
             ]},
-            { sit: "택시 탔을 때", lines: [
-                {en:"Where to, ma'am?", ko:"어디로 모실까요?"},
-                {en:"To the Hilton Hotel, please.", ko:"힐튼 호텔로 가주세요."},
-                {en:"Keep the change.", ko:"잔돈은 가지세요."}
+            { sit: "비행기 안에서", lines: [
+                {en:"Could I get a blanket, please?", ko:"담요 한 장 받을 수 있을까요?"},
+                {en:"Sure, I'll bring one for you.", ko:"물론이죠, 하나 가져다드릴게요."},
+                {en:"Thank you. And some water too.", ko:"고맙습니다. 물도 좀 부탁해요."}
             ]},
-            { sit: "식당 예약", lines: [
-                {en:"Table for two, please.", ko:"두 명 자리가 있을까요?"},
-                {en:"Do you have a reservation?", ko:"예약하셨나요?"},
-                {en:"No, but we can wait.", ko:"아니요, 하지만 기다릴 수 있어요."}
-            ]},
-            { sit: "옷가게 쇼핑", lines: [
-                {en:"Can I try this on?", ko:"이거 입어봐도 될까요?"},
-                {en:"The fitting room is over there.", ko:"탈의실은 저쪽에 있습니다."},
-                {en:"It fits me perfectly.", ko:"저한테 딱 맞네요."}
+            { sit: "쇼핑 후 결제", lines: [
+                {en:"Do you accept credit cards?", ko:"신용카드 받으시나요?"},
+                {en:"Yes, we accept all major cards.", ko:"네, 모든 주요 카드를 받습니다."},
+                {en:"Can I get a receipt?", ko:"영수증 주시겠어요?"}
             ]}
         ];
 
-        // 페이지를 열 때마다 랜덤으로 하나 선택!
         let currentScript = scripts[Math.floor(Math.random() * scripts.length)];
         let idx = 0;
 
         function render() {
-            const currentLine = currentScript.lines[idx];
+            const line = currentScript.lines[idx];
             document.getElementById('lbl-situation').innerText = "📍 상황: " + currentScript.sit;
-            document.getElementById('lbl-english').innerText = currentLine.en;
-            document.getElementById('lbl-meaning').innerText = currentLine.ko;
-            
-            // 목소리도 들려드려요!
+            document.getElementById('lbl-english').innerText = line.en;
+            document.getElementById('lbl-meaning').innerText = line.ko;
+            playCurrent(); // 화면 바뀔 때 자동 발음
+        }
+
+        function playCurrent() {
             window.speechSynthesis.cancel();
-            const ut = new SpeechSynthesisUtterance(currentLine.en);
+            const ut = new SpeechSynthesisUtterance(currentScript.lines[idx].en);
             ut.lang = 'en-US';
             window.speechSynthesis.speak(ut);
         }
@@ -75,6 +88,26 @@
             } else {
                 document.getElementById('btn-next').style.display = 'none';
                 document.getElementById('btn-restart').style.display = 'block';
+                showFullScript();
+            }
+        }
+
+        function showFullScript() {
+            const board = document.getElementById('script-board');
+            let html = "<h4>오늘의 대본 요약</h4>";
+            currentScript.lines.forEach(l => {
+                html += `<div class='script-item'><b>Q:</b> ${l.en}<br><small>${l.ko}</small></div>`;
+            });
+            board.innerHTML = html;
+        }
+
+        function toggleFullScript() {
+            const board = document.getElementById('script-board');
+            if(board.style.display === 'none' || !board.style.display) {
+                showFullScript();
+                board.style.display = 'block';
+            } else {
+                board.style.display = 'none';
             }
         }
 
