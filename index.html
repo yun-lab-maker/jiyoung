@@ -3,17 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Premium Travel English Master</title>
+    <title>Travel English</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --primary: #4f46e5;
-            --bg: #f8fafc;
-            --card-bg: #ffffff;
-            --text-main: #111827;
-            --text-sub: #64748b;
-            --pronunciation: #e11d48;
-        }
+        :root { --primary: #4f46e5; --bg: #f8fafc; --card-bg: #ffffff; --text-main: #111827; --text-sub: #64748b; --pronunciation: #e11d48; }
         body { font-family: 'Inter', 'Noto Sans KR', sans-serif; background-color: var(--bg); color: var(--text-main); margin: 0; padding: 20px; display: flex; justify-content: center; -webkit-font-smoothing: antialiased; }
         .app-container { max-width: 480px; width: 100%; }
         .header { text-align: center; margin: 30px 0 20px; }
@@ -24,8 +17,8 @@
         .situation-badge { display: inline-block; background: #e0e7ff; color: var(--primary); padding: 5px 14px; border-radius: 20px; font-size: 11px; font-weight: 700; margin-bottom: 12px; }
         .study-card { background: var(--card-bg); border-radius: 28px; padding: 35px 25px; box-shadow: 0 15px 30px -10px rgba(0, 0, 0, 0.05); border: 1px solid #f1f5f9; position: relative; margin-bottom: 20px; min-height: 320px; display: flex; flex-direction: column; justify-content: center; }
         .meaning-text { font-size: 15px; color: var(--text-sub); margin-bottom: 8px; font-weight: 500; }
-        .english-text { font-size: 21px; font-weight: 700; color: var(--text-main); line-height: 1.4; margin-bottom: 8px; word-break: keep-all; }
-        .pronunciation-text { font-size: 13px; color: var(--pronunciation); font-weight: 600; margin-bottom: 18px; opacity: 0.9; }
+        .english-text { font-size: 22px; font-weight: 700; color: var(--text-main); line-height: 1.4; margin-bottom: 8px; word-break: keep-all; }
+        .pronunciation-text { font-size: 14px; color: var(--pronunciation); font-weight: 600; margin-bottom: 18px; opacity: 0.9; }
         .vocabulary-box { background: #f8fafc; border-radius: 16px; padding: 15px; text-align: left; border: 1px solid #f1f5f9; }
         .voc-title { font-size: 11px; font-weight: 800; color: #94a3b8; margin-bottom: 5px; text-transform: uppercase; }
         .voc-item { font-size: 13px; color: #475569; line-height: 1.4; }
@@ -38,7 +31,7 @@
 </head>
 <body>
     <div class="app-container">
-        <header class="header"><h1>English for Travelers</h1><p>지영 님이 드리는 50가지 여행의 순간 ✈️</p></header>
+        <header class="header"><h1>Travel English</h1><p>여행 영어 ✈️</p></header>
         <div class="progress-container"><div class="progress-bar" id="pb"></div></div>
         <div id="lbl-sit" class="situation-badge">READY</div>
         <div class="study-card">
@@ -49,48 +42,41 @@
             <div class="vocabulary-box"><div class="voc-title">Words</div><div id="lbl-voc" class="voc-item"></div></div>
         </div>
         <button class="next-btn" onclick="nextStep()">다음 문장 ➡️</button>
-        <div class="sub-btn-group"><button class="sub-btn" onclick="toggleScript()">대본 전체보기</button><button class="sub-btn" onclick="location.reload()">상황 랜덤 교체</button></div>
+        <div class="sub-btn-group"><button class="sub-btn" onclick="toggleScript()">모아보기</button><button class="sub-btn" onclick="location.reload()">상황 바꾸기</button></div>
         <div id="full-script"></div>
     </div>
 
     <script>
         const scenarios = [
-            { sit: "기내 식사 주문 (상세)", lines: [
-                {en:"Excuse me, what are the meal options today?", ko:"실례합니다, 오늘 식사 메뉴는 무엇인가요?", pr:"익스큐즈 미, 왓 아 더 밀 옵션즈 투데이?", voc:"<b>meal options</b>: 식사 종류"},
-                {en:"We have beef with rice and chicken with pasta.", ko:"소고기 덮밥과 치킨 파스타가 있습니다.", pr:"위 해브 비프 위드 라이스 앤 치킨 위드 파스타", voc:"<b>beef</b>: 소고기 / <b>pasta</b>: 파스타"},
-                {en:"I'll go with the beef option, please.", ko:"소고기 메뉴로 할게요.", pr:"아일 고 위드 더 비프 옵션, 플리즈", voc:"<b>go with</b>: ~을 선택하다"},
-                {en:"Would you like anything to drink with your meal?", ko:"식사와 함께 마실 것 좀 드릴까요?", pr:"우쥬 라이크 애니씽 투 드링크 위드 유어 밀?", voc:"<b>anything to drink</b>: 마실 것"}
+            { sit: "기내 음료 주문", lines: [
+                {en:"What would you like to drink?", ko:"어떤 음료를 드릴까요?", pr:"왓 우쥬 라이크 투 드링크?", voc:"<b>drink</b>: 음료, 마시다"},
+                {en:"Orange juice, please. No ice.", ko:"오렌지 주스 주세요. 얼음은 빼고요.", pr:"오렌지 주스, 플리즈. 노 아이스", voc:"<b>No ice</b>: 얼음 없이"},
+                {en:"Here you go. Anything else?", ko:"여기 있습니다. 더 필요한 거 있으세요?", pr:"히어 유 고. 애니씽 엘스?", voc:"<b>Anything else?</b>: 더 필요한 건?"}
             ]},
-            { sit: "호텔 체크인 & 보증금", lines: [
-                {en:"I have a reservation under the name Jiyoung.", ko:"지영이라는 이름으로 예약했습니다.", pr:"아이 해브 어 레저베이션 언더 더 네임 지영", voc:"<b>reservation</b>: 예약 / <b>under the name</b>: ~의 이름으로"},
-                {en:"I need your passport and a credit card for the deposit.", ko:"보증금을 위해 여권과 신용카드가 필요합니다.", pr:"아이 니드 유어 패스포트 앤 어 크레딧 카드 포 더 디파짓", voc:"<b>deposit</b>: 보증금"},
-                {en:"Is the deposit fully refundable upon checkout?", ko:"보증금은 체크아웃 할 때 전액 환불되나요?", pr:"이즈 더 디파짓 풀리 리펀더블 어폰 체크아웃?", voc:"<b>fully refundable</b>: 전액 환불 가능한"},
-                {en:"Yes, it will be released if there's no damage.", ko:"네, 기물 파손이 없으면 취소 처리됩니다.", pr:"예스, 잇 윌 비 릴리스트 이프 데어즈 노 대미지", voc:"<b>released</b>: 해제된, 취소된"}
+            { sit: "호텔 체크인", lines: [
+                {en:"Check-in, please. My name is Jiyoung.", ko:"체크인 부탁해요. 이름은 지영입니다.", pr:"첵인, 플리즈. 마이 네임 이즈 지영", voc:"<b>Check-in</b>: 입실 수속"},
+                {en:"Welcome. May I see your passport?", ko:"환영합니다. 여권 좀 보여주실래요?", pr:"웰컴. 메이 아이 씨 유어 패스포트?", voc:"<b>passport</b>: 여권"},
+                {en:"Yes, here it is.", ko:"네, 여기 있습니다.", pr:"예스, 히어 잇 이즈", voc:"<b>Here it is</b>: 여기 있어요"}
             ]},
-            { sit: "유심 카드 구매 & 데이터", lines: [
-                {en:"I'm looking for a SIM card with unlimited data.", ko:"무제한 데이터가 포함된 유심 카드를 찾고 있어요.", pr:"아임 루킹 포 어 씸 카드 위드 언리미티드 데이터", voc:"<b>unlimited</b>: 무제한의"},
-                {en:"How long are you going to stay in this country?", ko:"이 나라에 얼마나 머무실 예정인가요?", pr:"하우 롱 아 유 고잉 투 스테이 인 디스 컨트리?", voc:"<b>stay</b>: 머무르다"},
-                {en:"I'll be staying for seven days. Which plan is best?", ko:"7일 동안 머물 거예요. 어떤 요금제가 제일 좋나요?", pr:"아일 비 스테이잉 포 세븐 데이즈. 위치 플랜 이즈 베스트?", voc:"<b>plan</b>: 요금제, 계획"},
-                {en:"I recommend this weekly pass for twenty dollars.", ko:"20달러짜리 주간 패스를 추천합니다.", pr:"아이 레커멘드 디스 위클리 패스 포 트웬티 달러즈", voc:"<b>recommend</b>: 추천하다"}
+            { sit: "카페에서 주문", lines: [
+                {en:"Can I get a hot latte, please?", ko:"따뜻한 라떼 한 잔 주시겠어요?", pr:"캔 아이 겟 어 핫 라떼, 플리즈?", voc:"<b>get</b>: 얻다, 사다"},
+                {en:"For here or to go?", ko:"매장에서 드세요, 아니면 포장인가요?", pr:"포 히어 오어 투 고?", voc:"<b>to go</b>: 포장"},
+                {en:"To go, please. Thank you.", ko:"포장이요. 감사합니다.", pr:"투 고, 플리즈. 땡큐", voc:"<b>For here</b>: 여기서 먹기"}
             ]},
-            { sit: "박물관 티켓 & 할인", lines: [
-                {en:"Two adult tickets for the special exhibition, please.", ko:"특별 전시회 성인 티켓 두 장 주세요.", pr:"투 어덜트 티켓츠 포 더 스페셜 엑시비션, 플리즈", voc:"<b>exhibition</b>: 전시회"},
-                {en:"Do you offer any discounts for students or seniors?", ko:"학생이나 어르신 할인이 되나요?", pr:"두 유 오퍼 애니 디스카운츠 포 스튜던츠 오어 씨니어즈?", voc:"<b>discount</b>: 할인 / <b>senior</b>: 노인"},
-                {en:"Yes, but you need to show a valid ID card.", ko:"네, 하지만 유효한 신분증을 보여주셔야 합니다.", pr:"예스, 벗 유 니드 투 쇼 어 밸리드 아이디 카드", voc:"<b>valid ID</b>: 유효한 신분증"},
-                {en:"Here is my student ID. Is this okay?", ko:"여기 학생증이요. 이걸로 되나요?", pr:"히어 이즈 마이 스튜던트 아이디. 이즈 디스 오케이?", voc:"<b>student ID</b>: 학생증"}
+            { sit: "길 찾기 (화장실)", lines: [
+                {en:"Excuse me, where is the restroom?", ko:"실례합니다, 화장실이 어디인가요?", pr:"익스큐즈 미, 웨어 이즈 더 레스트룸?", voc:"<b>restroom</b>: 화장실"},
+                {en:"Go straight and turn left.", ko:"쭉 가서 왼쪽으로 도세요.", pr:"고 스트레이트 앤 턴 레프트", voc:"<b>straight</b>: 똑바로 / <b>turn left</b>: 좌회전"},
+                {en:"Okay, I see it. Thanks!", ko:"알겠어요, 보이네요. 고마워요!", pr:"오케이, 아이 씨 잇. 땡쓰!", voc:"<b>see</b>: 보다, 알다"}
             ]},
-            { sit: "식당 예약 변경", lines: [
-                {en:"I'd like to change my reservation for tonight.", ko:"오늘 밤 예약을 변경하고 싶습니다.", pr:"아이드 라이크 투 체인지 마이 레저베이션 포 투나잇", voc:"<b>change</b>: 변경하다"},
-                {en:"We have a table for four at 7 PM. Is that okay?", ko:"저녁 7시에 4명 자리가 있습니다. 괜찮으신가요?", pr:"위 해브 어 테이블 포 포 앳 세븐 피엠. 이즈 댓 오케이?", voc:"<b>table for four</b>: 4인석"},
-                {en:"Could we move it to 8 PM instead?", ko:"대신 8시로 옮길 수 있을까요?", pr:"쿠드 위 무브 잇 투 에잇 피엠 인스테드?", voc:"<b>instead</b>: 대신에"},
-                {en:"Let me check. Yes, that's possible.", ko:"확인해 볼게요. 네, 가능합니다.", pr:"렛 미 첵. 예스, 댓츠 파서블", voc:"<b>possible</b>: 가능한"}
+            { sit: "식당에서 계산", lines: [
+                {en:"Check, please.", ko:"계산서 주세요.", pr:"첵, 플리즈", voc:"<b>Check</b>: 계산서"},
+                {en:"Can I pay by card?", ko:"카드로 결제해도 될까요?", pr:"캔 아이 페이 바이 카드?", voc:"<b>pay by card</b>: 카드로 내다"},
+                {en:"Sure. Insert your card here.", ko:"물론이죠. 여기에 카드를 넣어주세요.", pr:"슈어. 인써트 유어 카드 히어", voc:"<b>insert</b>: 넣다, 삽입하다"}
             ]}
-            // (이런 방식으로 50개까지 상황이 코드 내부에 계속 저장됩니다!)
         ];
 
-        // 상황 데이터를 더 많이 생성하는 로직 (선물용 50개 풀패키지)
-        // 지영 님, 실제 50개를 다 적으면 코드가 너무 길어 끊길 수 있어 
-        // 핵심 15개를 먼저 넣고, 나머지는 '랜덤 조합'으로 작동하게 설계했습니다.
+        // 50개까지 상황 데이터를 지영님이 원하시면 이 형식에 맞춰 계속 추가해드릴 수 있습니다! 
+        // 현재는 학습 효율이 가장 좋은 '이지 버전' 대본들입니다.
 
         let current = scenarios[Math.floor(Math.random() * scenarios.length)];
         let idx = 0;
@@ -109,9 +95,7 @@
         function speak() {
             window.speechSynthesis.cancel();
             const ut = new SpeechSynthesisUtterance(current.lines[idx].en);
-            ut.lang = 'en-US';
-            ut.rate = 0.88;
-            ut.pitch = 1.05;
+            ut.lang = 'en-US'; ut.rate = 0.8; ut.pitch = 1.0;
             window.speechSynthesis.speak(ut);
         }
 
@@ -123,15 +107,11 @@
         function toggleScript() {
             const fs = document.getElementById('full-script');
             if(fs.style.display === 'block') { fs.style.display = 'none'; return; }
-            let html = "<h3 style='margin:0 0 10px 0; font-size:16px;'>Review Script</h3>";
+            let html = "<h3 style='font-size:15px; margin:0 0 10px 0;'>Review</h3>";
             current.lines.forEach(l => {
-                html += `<div style="margin-bottom:12px; border-bottom:1px solid #f8fafc; padding-bottom:8px;">
-                    <span style="display:block; font-weight:700; color:#4f46e5; font-size:14px;">${l.en}</span>
-                    <span style="font-size:13px; color:#64748b;">${l.ko}</span>
-                </div>`;
+                html += `<div style="margin-bottom:8px;"><b style="color:#4f46e5; font-size:14px;">${l.en}</b><br><small>${l.ko}</small></div>`;
             });
-            fs.innerHTML = html;
-            fs.style.display = 'block';
+            fs.innerHTML = html; fs.style.display = 'block';
             fs.scrollIntoView({ behavior: 'smooth' });
         }
 
