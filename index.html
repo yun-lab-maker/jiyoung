@@ -7,23 +7,16 @@
     <style>
         :root { --primary: #ff4757; --secondary: #007aff; --bg: #fff9f9; }
         body { font-family: 'Apple SD Gothic Neo', sans-serif; text-align: center; padding: 0; margin: 0; background-color: var(--bg); color: #333; }
-        .nav-tabs { display: flex; background: white; border-bottom: 1px solid #eee; position: sticky; top: 0; z-index: 100; }
-        .tab { flex: 1; padding: 15px; font-size: 18px; font-weight: bold; cursor: pointer; color: #888; }
-        .tab.active { color: var(--primary); border-bottom: 3px solid var(--primary); }
         .container { max-width: 500px; margin: 20px auto; padding: 0 20px; box-sizing: border-box; }
-        .page { display: none; }
-        .page.active { display: block; }
         .situation-tag { background: #ffeaa7; color: #d63031; padding: 5px 15px; border-radius: 50px; font-weight: bold; font-size: 14px; margin-bottom: 15px; display: inline-block; }
-        .card { background: white; padding: 35px 20px; border-radius: 25px; box-shadow: 0 8px 15px rgba(0,0,0,0.05); border: 2px solid #ffccd5; margin-bottom: 15px; position: relative; min-height: 180px; display: flex; flex-direction: column; justify-content: center; }
+        .card { background: white; padding: 35px 20px; border-radius: 25px; box-shadow: 0 8px 15px rgba(0,0,0,0.05); border: 2px solid #ffccd5; margin-bottom: 15px; position: relative; min-height: 200px; display: flex; flex-direction: column; justify-content: center; }
         .card::before { content: attr(data-speaker); position: absolute; top: -15px; left: 20px; background: #555; color: white; padding: 4px 15px; border-radius: 10px; font-size: 14px; font-weight: bold; }
         .card.user-card { border-color: var(--secondary); background: #f0f7ff; }
         .card.user-card::before { background: var(--secondary); }
-        .meaning { font-size: 22px; color: #444; font-weight: bold; margin-bottom: 10px; }
-        .english { font-size: 26px; font-weight: bold; color: var(--secondary); margin: 10px 0; line-height: 1.3; }
-        .pronunciation { font-size: 18px; color: #888; margin-bottom: 15px; }
-        .btn-group { display: flex; gap: 10px; margin: 20px 0; }
-        .nav-btn { flex: 1; padding: 18px; border-radius: 15px; border: none; background: var(--primary); color: white; cursor: pointer; font-size: 18px; font-weight: bold; box-shadow: 0 5px 0 #e03a49; }
-        .nav-btn.prev { background: #bbb; box-shadow: 0 5px 0 #999; }
+        .meaning { font-size: 20px; color: #444; font-weight: bold; margin-bottom: 10px; }
+        .english { font-size: 24px; font-weight: bold; color: var(--secondary); margin: 10px 0; line-height: 1.3; }
+        .pronunciation { font-size: 18px; color: #888; }
+        .nav-btn { width: 100%; padding: 18px; border-radius: 15px; border: none; background: var(--primary); color: white; cursor: pointer; font-size: 18px; font-weight: bold; box-shadow: 0 5px 0 #e03a49; margin-top: 10px; }
         #loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 2000; }
         .spinner { border: 5px solid #f3f3f3; border-top: 5px solid var(--primary); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin-bottom: 20px; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
@@ -32,61 +25,37 @@
 <body>
     <div id="loading-overlay">
         <div class="spinner"></div>
-        <div id="loading-text" style="font-weight: bold; color: #555;">지영 님의 대본을 생성하고 있어요...</div>
+        <div style="font-weight: bold; color: #555;">지영 님을 위한 새로운 대본을 만드는 중...</div>
     </div>
 
-    <div class="nav-tabs">
-        <div class="tab active" id="tab-study" onclick="switchPage('study')">📖 대화 연습</div>
-        <div class="tab" id="tab-stats" onclick="switchPage('stats')">📊 공부 기록</div>
-    </div>
-    
     <div class="container">
-        <div id="study-page" class="page active">
-            <div id="content-area">
-                <div class="situation-tag" id="lbl-situation">📍 준비 중...</div>
-                <div class="card" id="speaker-card" data-speaker="대기">
-                    <p class="meaning" id="lbl-meaning"></p>
-                    <p class="english" id="lbl-english"></p>
-                    <p class="pronunciation" id="lbl-pronunciation"></p>
-                    <button onclick="playCurrentTTS()" style="background:#e1f5fe; color:#0288d1; border:none; padding:10px 20px; border-radius:50px; cursor:pointer; font-weight:bold; align-self:center;">🔊 소리 듣기</button>
-                </div>
-                <div class="btn-group" id="main-btns">
-                    <button class="nav-btn prev" id="btn-prev" onclick="prevStep()">⬅️ 이전</button>
-                    <button class="nav-btn" id="btn-next" onclick="nextStep()">다음 ➡️</button>
-                </div>
-                <button class="nav-btn" id="btn-restart" style="display:none; background:#555; box-shadow:0 5px 0 #333;" onclick="location.reload()">새로운 상황 시작</button>
+        <div id="study-page">
+            <div class="situation-tag" id="lbl-situation">상황 준비 중</div>
+            <div class="card" id="speaker-card" data-speaker="대기">
+                <p class="meaning" id="lbl-meaning"></p>
+                <p class="english" id="lbl-english"></p>
+                <p class="pronunciation" id="lbl-pronunciation"></p>
+                <button onclick="playTTS()" style="background:#e1f5fe; color:#0288d1; border:none; padding:8px 15px; border-radius:50px; cursor:pointer; font-weight:bold; margin-top:15px;">🔊 소리 듣기</button>
             </div>
-        </div>
-        
-        <div id="stats-page" class="page">
-            <div id="stat-info" style="display:flex; gap:10px; margin-bottom:20px;">
-                <div style="flex:1; background:white; padding:15px; border-radius:15px;">횟수: <b id="stat-total" style="color:var(--primary);">0</b></div>
-                <div style="flex:1; background:white; padding:15px; border-radius:15px;">연속: <b id="stat-days" style="color:var(--primary);">0</b>일</div>
-            </div>
-            <div id="history-list"></div>
+            <button class="nav-btn" id="btn-next" onclick="nextStep()">다음 문장 ➡️</button>
+            <button class="nav-btn" id="btn-restart" style="display:none; background:#555; box-shadow:0 5px 0 #333;" onclick="location.reload()">오늘의 다른 공부 하기 🔄</button>
         </div>
     </div>
 
     <script>
-        // 1. 여기에 키를 정확히 넣어주세요!
-        const API_KEY = "AIzaSyD4t-Mn7mUBBEk0c3m0n-yZHWN9zo0IB-c"; 
+        // [중요] 지영 님의 API KEY를 아래에 꼭 넣어주세요!
+        const API_KEY = "AIzaSyD4t-Mn7mUBBEk0c3m0n-yZHWN9zo0IB-c";
 
+        let dialogue = [];
         let currentIndex = 0;
-        let dialogue = []; 
-        let scenarioInfo = "";
-        let wordsInfo = "";
-        let stats = JSON.parse(localStorage.getItem('jiyoungStats')) || { total: 0, days: 0, lastDate: '', history: [] };
 
         async function fetchDialogue() {
+            // 기존에 꼬여있을 수 있는 캐시 데이터를 한 번 비웁니다.
+            localStorage.removeItem('jiyoungStats'); 
+
             try {
                 const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
-                
-                // AI에게 형식 파괴를 금지하는 아주 구체적인 명령
-                const prompt = "You are a travel English teacher. Generate a 6-line dialogue. " +
-                               "Context: Random (Airport, Hotel, Taxi, or Shopping). " +
-                               "Characters: Staff and Jiyoung. " +
-                               "Response MUST be ONLY a valid JSON object, no introduction or conclusion. " +
-                               "JSON structure: { \"situation\": \"string\", \"lines\": [ { \"speaker\": \"Staff or Jiyoung\", \"en\": \"string\", \"ko\": \"한국어\", \"pr\": \"발음\" } ], \"words\": \"string\" }";
+                const prompt = "Pick a random travel situation (Airport, Shopping, Taxi, Street, etc. NOT breakfast). Generate 6-line dialogue Staff vs Jiyoung. Return ONLY JSON: { \"situation\": \"string\", \"lines\": [ { \"speaker\": \"Staff or Jiyoung\", \"en\": \"string\", \"ko\": \"한국어\", \"pr\": \"발음\" } ] }";
 
                 const res = await fetch(url, {
                     method: 'POST',
@@ -95,88 +64,49 @@
                 });
 
                 const json = await res.json();
-                
-                // AI 응답 텍스트 정제 (불필요한 ```json 마크다운 제거)
                 let rawText = json.candidates[0].content.parts[0].text;
-                rawText = rawText.replace(/```json/g, "").replace(/```/g, "").trim();
                 
-                const data = JSON.parse(rawText);
+                // 어떤 형식으로 와도 JSON만 쏙 뽑아내는 강력 필터
+                const data = JSON.parse(rawText.match(/\{[\s\S]*\}/)[0]);
+                
                 dialogue = data.lines;
-                scenarioInfo = data.situation;
-                wordsInfo = data.words;
-
+                document.getElementById('lbl-situation').innerText = "📍 상황: " + data.situation;
                 document.getElementById('loading-overlay').style.display = 'none';
-                renderStep();
+                render();
             } catch (e) {
-                console.error("에러 발생:", e);
-                document.getElementById('loading-text').innerText = "연결 오류! 7초 후 비상 대본으로 시작합니다...";
-                setTimeout(useFallback, 3000);
+                alert("API 키를 확인하시거나 잠시 후 새로고침 해주세요!");
+                console.error(e);
             }
         }
 
-        function useFallback() {
-            scenarioInfo = "비상용 상황: 호텔 조식 문의";
-            dialogue = [
-                {speaker:'Jiyoung', en:'What time is breakfast?', ko:'조식 시간이 언제인가요?', pr:'왓 타임 이즈 브렉퍼스트?'},
-                {speaker:'Staff', en:'It is from 7 to 10 AM.', ko:'오전 7시부터 10시까지입니다.', pr:'잇 이즈 프롬 세븐 투 텐 에이엠.'},
-                {speaker:'Jiyoung', en:'Where is the restaurant?', ko:'식당은 어디에 있나요?', pr:'웨어 이즈 더 레스토랑?'},
-                {speaker:'Staff', en:'It is on the second floor.', ko:'2층에 있습니다.', pr:'잇 이즈 온 더 세컨드 플로어.'},
-                {speaker:'Jiyoung', en:'Thank you for the information.', ko:'정보 감사합니다.', pr:'땡큐 포 더 인포메이션.'},
-                {speaker:'Staff', en:'You are welcome. Enjoy!', ko:'천만에요. 즐거운 시간 되세요!', pr:'유 아 웰컴. 엔조이!'}
-            ];
-            document.getElementById('loading-overlay').style.display = 'none';
-            renderStep();
-        }
-
-        function renderStep() {
+        function render() {
             const line = dialogue[currentIndex];
             const card = document.getElementById('speaker-card');
-            document.getElementById('lbl-situation').innerText = "📍 상황: " + scenarioInfo;
             card.setAttribute('data-speaker', line.speaker === 'Jiyoung' ? "지영" : "직원");
             if(line.speaker === 'Jiyoung') card.classList.add('user-card'); else card.classList.remove('user-card');
+            
             document.getElementById('lbl-meaning').innerText = line.ko;
             document.getElementById('lbl-english').innerText = line.en;
             document.getElementById('lbl-pronunciation').innerText = line.pr;
-            document.getElementById('btn-prev').disabled = (currentIndex === 0);
-            document.getElementById('btn-next').innerText = (currentIndex === dialogue.length - 1) ? "완료 💮" : "다음 ➡️";
         }
 
         function nextStep() {
-            if (currentIndex < dialogue.length - 1) { currentIndex++; renderStep(); }
-            else { finishStudy(); }
-        }
-
-        function prevStep() { if (currentIndex > 0) { currentIndex--; renderStep(); } }
-
-        function finishStudy() {
-            document.getElementById('speaker-card').style.display = 'none';
-            document.getElementById('main-btns').style.display = 'none';
-            document.getElementById('btn-restart').style.display = 'block';
-            saveStats();
-        }
-
-        function saveStats() {
-            const today = new Date().toLocaleDateString();
-            stats.total++;
-            if (stats.lastDate !== today) { stats.days++; stats.lastDate = today; }
-            localStorage.setItem('jiyoungStats', JSON.stringify(stats));
-        }
-
-        function switchPage(p) {
-            document.querySelectorAll('.page').forEach(pg => pg.classList.remove('active'));
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            document.getElementById(p + '-page').classList.add('active');
-            document.getElementById('tab-' + p).classList.add('active');
-            if(p === 'stats') {
-                document.getElementById('stat-total').innerText = stats.total;
-                document.getElementById('stat-days').innerText = stats.days;
+            if (currentIndex < dialogue.length - 1) {
+                currentIndex++;
+                render();
+            } else {
+                document.getElementById('speaker-card').style.display = 'none';
+                document.getElementById('btn-next').style.display = 'none';
+                document.getElementById('lbl-situation').innerText = "🎉 오늘의 학습 완료!";
+                document.getElementById('btn-restart').style.display = 'block';
             }
         }
 
-        function playCurrentTTS() {
+        function playTTS() {
             window.speechSynthesis.cancel();
             const ut = new SpeechSynthesisUtterance(dialogue[currentIndex].en);
-            ut.lang = 'en-US'; window.speechSynthesis.speak(ut);
+            ut.lang = 'en-US';
+            window.speechSynthesis.speak(ut);
         }
 
         fetchDialogue();
