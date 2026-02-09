@@ -1,41 +1,84 @@
-<script>
-    // 1. 여기에 지영 님의 API 키를 넣어주세요!
-    const API_KEY = "AIzaSyD4t-Mn7mUBBEk0c3m0n-yZHWN9zo0IB-c"; 
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>지영이의 영어 공부방</title>
+    <style>
+        :root { --primary: #ff4757; --secondary: #007aff; --bg: #fff9f9; }
+        body { font-family: 'Apple SD Gothic Neo', sans-serif; text-align: center; padding: 20px; background-color: var(--bg); margin: 0; }
+        .container { max-width: 400px; margin: 0 auto; }
+        .situation-tag { background: #ffeaa7; color: #d63031; padding: 10px 20px; border-radius: 50px; font-weight: bold; margin-bottom: 25px; display: inline-block; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        .card { background: white; padding: 40px 20px; border-radius: 30px; box-shadow: 0 10px 20px rgba(0,0,0,0.05); border: 2px solid #ffccd5; margin-bottom: 25px; min-height: 200px; display: flex; flex-direction: column; justify-content: center; }
+        .english { font-size: 24px; font-weight: bold; color: var(--secondary); margin-bottom: 12px; line-height: 1.3; }
+        .meaning { font-size: 18px; color: #444; margin-bottom: 8px; }
+        .nav-btn { width: 100%; padding: 20px; border-radius: 20px; border: none; background: var(--primary); color: white; cursor: pointer; font-size: 19px; font-weight: bold; box-shadow: 0 6px 0 #e03a49; }
+        .nav-btn:active { transform: translateY(3px); box-shadow: 0 3px 0 #e03a49; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="situation-tag" id="lbl-situation">📍 준비 중...</div>
+        <div class="card">
+            <div class="meaning" id="lbl-meaning"></div>
+            <div class="english" id="lbl-english"></div>
+        </div>
+        <button class="nav-btn" id="btn-next" onclick="nextStep()">다음 문장 ➡️</button>
+        <button class="nav-btn" id="btn-restart" style="display:none; background:#555; box-shadow: 0 6px 0 #333;" onclick="location.reload()">다른 상황 연습 🔄</button>
+    </div>
 
-    async function fetchDialogue() {
-        try {
-            // [포인트] 주소를 v1beta로, 모델을 gemini-1.5-flash-latest로 아주 정확히 지정했습니다.
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${API_KEY}`;
+    <script>
+        // 여기에 상황을 무한정 추가할 수 있어요!
+        const scripts = [
+            { sit: "입국 심사대", lines: [
+                {en:"What's the purpose of your visit?", ko:"방문 목적이 무엇인가요?"},
+                {en:"I'm here for sightseeing.", ko:"관광하러 왔습니다."},
+                {en:"How long will you stay?", ko:"얼마나 머무실 건가요?"}
+            ]},
+            { sit: "택시 탔을 때", lines: [
+                {en:"Where to, ma'am?", ko:"어디로 모실까요?"},
+                {en:"To the Hilton Hotel, please.", ko:"힐튼 호텔로 가주세요."},
+                {en:"Keep the change.", ko:"잔돈은 가지세요."}
+            ]},
+            { sit: "식당 예약", lines: [
+                {en:"Table for two, please.", ko:"두 명 자리가 있을까요?"},
+                {en:"Do you have a reservation?", ko:"예약하셨나요?"},
+                {en:"No, but we can wait.", ko:"아니요, 하지만 기다릴 수 있어요."}
+            ]},
+            { sit: "옷가게 쇼핑", lines: [
+                {en:"Can I try this on?", ko:"이거 입어봐도 될까요?"},
+                {en:"The fitting room is over there.", ko:"탈의실은 저쪽에 있습니다."},
+                {en:"It fits me perfectly.", ko:"저한테 딱 맞네요."}
+            ]}
+        ];
+
+        // 페이지를 열 때마다 랜덤으로 하나 선택!
+        let currentScript = scripts[Math.floor(Math.random() * scripts.length)];
+        let idx = 0;
+
+        function render() {
+            const currentLine = currentScript.lines[idx];
+            document.getElementById('lbl-situation').innerText = "📍 상황: " + currentScript.sit;
+            document.getElementById('lbl-english').innerText = currentLine.en;
+            document.getElementById('lbl-meaning').innerText = currentLine.ko;
             
-            const prompt = "Generate a 6-line travel English dialogue between Staff and Jiyoung. Situation: Random (Airport, Taxi, or Shopping). Output ONLY JSON: { \"situation\": \"string\", \"lines\": [ { \"en\": \"string\", \"ko\": \"한국어\", \"pr\": \"발음\" } ] }";
-
-            const res = await fetch(url, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
-            });
-
-            const json = await res.json();
-            
-            // 만약 여기서도 에러가 나면 지영 님이 보시는 알럿창에 구체적인 이유가 뜰 거예요.
-            if (json.error) {
-                alert("구글 서버 응답: " + json.error.message);
-                return;
-            }
-
-            const rawText = json.candidates[0].content.parts[0].text.replace(/```json/g, "").replace(/```/g, "").trim();
-            const data = JSON.parse(rawText);
-            
-            // 성공하면 화면에 띄우기
-            dialogue = data.lines;
-            document.getElementById('lbl-situation').innerText = "📍 상황: " + data.situation;
-            document.getElementById('loading').style.display = 'none';
-            render();
-
-        } catch (e) {
-            alert("연결에 실패했습니다. 키를 다시 한번 확인해 주세요!");
-            console.error(e);
+            // 목소리도 들려드려요!
+            window.speechSynthesis.cancel();
+            const ut = new SpeechSynthesisUtterance(currentLine.en);
+            ut.lang = 'en-US';
+            window.speechSynthesis.speak(ut);
         }
-    }
-    fetchDialogue();
-</script>
+
+        function nextStep() {
+            if (idx < currentScript.lines.length - 1) {
+                idx++;
+                render();
+            } else {
+                document.getElementById('btn-next').style.display = 'none';
+                document.getElementById('btn-restart').style.display = 'block';
+            }
+        }
+
+        render();
+    </script>
+</body>
+</html>
