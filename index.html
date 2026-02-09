@@ -1,108 +1,41 @@
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>지영이의 영어 공부</title>
-    <style>
-        :root { --primary: #ff4757; --secondary: #007aff; --bg: #fff9f9; }
-        body { font-family: 'Apple SD Gothic Neo', sans-serif; text-align: center; padding: 20px; margin: 0; background-color: var(--bg); }
-        .container { max-width: 400px; margin: 0 auto; }
-        .situation-tag { background: #ffeaa7; color: #d63031; padding: 10px 20px; border-radius: 50px; font-weight: bold; margin-bottom: 25px; display: inline-block; font-size: 16px; }
-        .card { background: white; padding: 40px 20px; border-radius: 30px; box-shadow: 0 10px 20px rgba(0,0,0,0.05); border: 2px solid #ffccd5; margin-bottom: 25px; min-height: 180px; display: flex; flex-direction: column; justify-content: center; }
-        .english { font-size: 26px; font-weight: bold; color: var(--secondary); margin-bottom: 12px; line-height: 1.3; }
-        .meaning { font-size: 20px; color: #444; font-weight: bold; margin-bottom: 8px; }
-        .pronunciation { font-size: 17px; color: #999; }
-        .nav-btn { width: 100%; padding: 20px; border-radius: 20px; border: none; background: var(--primary); color: white; cursor: pointer; font-size: 19px; font-weight: bold; box-shadow: 0 6px 0 #e03a49; }
-        #loading { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 1000; font-weight: bold; color: #555; }
-        .spinner { border: 4px solid #f3f3f3; border-top: 4px solid var(--primary); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin-bottom: 20px; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-    </style>
-</head>
-<body>
-    <div id="loading">
-        <div class="spinner"></div>
-        지영 님, AI가 대본을 짜고 있어요! 잠시만요...
-    </div>
+<script>
+    // 1. 여기에 지영 님의 API 키를 넣어주세요!
+    const API_KEY = "AIzaSyD4t-Mn7mUBBEk0c3m0n-yZHWN9zo0IB-c"; 
 
-    <div class="container">
-        <div class="situation-tag" id="lbl-situation">상황 생성 중...</div>
-        <div class="card" id="main-card">
-            <div class="meaning" id="lbl-meaning"></div>
-            <div class="english" id="lbl-english"></div>
-            <div class="pronunciation" id="lbl-pronunciation"></div>
-        </div>
-        <button class="nav-btn" id="btn-next" onclick="nextStep()">다음 문장 ➡️</button>
-        <button class="nav-btn" id="btn-restart" style="display:none; background:#555; box-shadow: 0 6px 0 #333;" onclick="location.reload()">새로운 대화 하기 🔄</button>
-    </div>
+    async function fetchDialogue() {
+        try {
+            // [포인트] 주소를 v1beta로, 모델을 gemini-1.5-flash-latest로 아주 정확히 지정했습니다.
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${API_KEY}`;
+            
+            const prompt = "Generate a 6-line travel English dialogue between Staff and Jiyoung. Situation: Random (Airport, Taxi, or Shopping). Output ONLY JSON: { \"situation\": \"string\", \"lines\": [ { \"en\": \"string\", \"ko\": \"한국어\", \"pr\": \"발음\" } ] }";
 
-    <script>
-        // 1. 여기에 지영 님의 API 키를 넣어주세요!
-        const API_KEY = "AIzaSyD4t-Mn7mUBBEk0c3m0n-yZHWN9zo0IB-c"; 
+            const res = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+            });
 
-        let dialogue = [];
-        let currentIndex = 0;
-
-        async function fetchDialogue() {
-            // 시도할 주소 목록 (v1beta와 v1 모두 준비)
-            const versions = ['v1beta', 'v1'];
-            const prompt = "Generate a 6-line travel English dialogue. Random situation (Airport, Hotel, Shopping). Output ONLY JSON: { \"situation\": \"string\", \"lines\": [ { \"en\": \"string\", \"ko\": \"한국어\", \"pr\": \"발음\" } ] }";
-
-            for (const ver of versions) {
-                try {
-                    const url = `https://generativelanguage.googleapis.com/${ver}/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
-                    const res = await fetch(url, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
-                    });
-                    const json = await res.json();
-
-                    if (!json.error) {
-                        const rawText = json.candidates[0].content.parts[0].text.replace(/```json/g, "").replace(/```/g, "").trim();
-                        const data = JSON.parse(rawText);
-                        dialogue = data.lines;
-                        document.getElementById('lbl-situation').innerText = "📍 상황: " + data.situation;
-                        document.getElementById('loading').style.display = 'none';
-                        render();
-                        return; // 성공하면 여기서 종료
-                    }
-                } catch (e) {
-                    console.error(`${ver} 시도 실패`, e);
-                }
+            const json = await res.json();
+            
+            // 만약 여기서도 에러가 나면 지영 님이 보시는 알럿창에 구체적인 이유가 뜰 거예요.
+            if (json.error) {
+                alert("구글 서버 응답: " + json.error.message);
+                return;
             }
-            // 모든 시도가 실패했을 때만 알럿창
-            alert("연결에 실패했습니다. API 키가 정확한지, 혹은 1분 뒤에 다시 시도해 주세요!");
-        }
 
-        function render() {
-            const line = dialogue[currentIndex];
-            document.getElementById('lbl-meaning').innerText = line.ko;
-            document.getElementById('lbl-english').innerText = line.en;
-            document.getElementById('lbl-pronunciation').innerText = line.pr;
-            playTTS(line.en);
-        }
+            const rawText = json.candidates[0].content.parts[0].text.replace(/```json/g, "").replace(/```/g, "").trim();
+            const data = JSON.parse(rawText);
+            
+            // 성공하면 화면에 띄우기
+            dialogue = data.lines;
+            document.getElementById('lbl-situation').innerText = "📍 상황: " + data.situation;
+            document.getElementById('loading').style.display = 'none';
+            render();
 
-        function nextStep() {
-            if (currentIndex < dialogue.length - 1) {
-                currentIndex++;
-                render();
-            } else {
-                document.getElementById('lbl-situation').innerText = "🎉 오늘의 연습 끝!";
-                document.getElementById('main-card').innerHTML = "<h3>대단해요, 지영 님! 💮</h3><p>오늘의 학습을 마쳤습니다.</p>";
-                document.getElementById('btn-next').style.display = 'none';
-                document.getElementById('btn-restart').style.display = 'block';
-            }
+        } catch (e) {
+            alert("연결에 실패했습니다. 키를 다시 한번 확인해 주세요!");
+            console.error(e);
         }
-
-        function playTTS(text) {
-            window.speechSynthesis.cancel();
-            const ut = new SpeechSynthesisUtterance(text);
-            ut.lang = 'en-US';
-            window.speechSynthesis.speak(ut);
-        }
-
-        fetchDialogue();
-    </script>
-</body>
-</html>
+    }
+    fetchDialogue();
+</script>
