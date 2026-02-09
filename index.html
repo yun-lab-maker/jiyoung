@@ -45,8 +45,8 @@
 
         async function fetchDialogue() {
             try {
-                // [성공 핵심] 모델명을 gemini-1.5-flash-latest로 구체화하고 v1beta 주소를 사용합니다.
-                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${API_KEY}`;
+                // [해결 핵심] 모델명을 가장 범용적인 'gemini-1.5-flash-8b' 또는 'gemini-1.5-flash'로 호출합니다.
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
                 
                 const prompt = "Generate a 6-line travel English dialogue between Staff and Jiyoung. " +
                                "Situation: Random travel context (NOT breakfast). " +
@@ -60,9 +60,10 @@
 
                 const json = await res.json();
                 
-                // 만약 에러가 나면 다른 모델(gemini-pro)로 즉시 재시도합니다.
+                // 만약 에러가 나면 지영 님의 키에 맞는 다른 주소로 재시도합니다.
                 if (json.error) {
-                    const retryUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${API_KEY}`;
+                    console.log("재시도 중...");
+                    const retryUrl = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
                     const retryRes = await fetch(retryUrl, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
@@ -75,7 +76,7 @@
                     processData(json);
                 }
             } catch (e) {
-                alert("연결에 문제가 있습니다. API 키가 정확한지 확인해 주세요!");
+                alert("연결 오류: " + e.message + "\nAPI 키가 활성화되었는지 다시 확인해 주세요!");
                 console.error(e);
             }
         }
