@@ -22,18 +22,18 @@
 <body>
     <div id="loading">
         <div class="spinner"></div>
-        지영 님을 위한 대본을 생성 중입니다...
+        지영 님, AI가 대본을 짜고 있어요! 잠시만요...
     </div>
 
     <div class="container">
-        <div class="situation-tag" id="lbl-situation">준비 중...</div>
+        <div class="situation-tag" id="lbl-situation">상황 생성 중...</div>
         <div class="card" id="main-card">
             <div class="meaning" id="lbl-meaning"></div>
             <div class="english" id="lbl-english"></div>
             <div class="pronunciation" id="lbl-pronunciation"></div>
         </div>
         <button class="nav-btn" id="btn-next" onclick="nextStep()">다음 문장 ➡️</button>
-        <button class="nav-btn" id="btn-restart" style="display:none; background:#555; box-shadow: 0 6px 0 #333;" onclick="location.reload()">새 주제로 다시 시작 🔄</button>
+        <button class="nav-btn" id="btn-restart" style="display:none; background:#555; box-shadow: 0 6px 0 #333;" onclick="location.reload()">새로운 대화 하기 🔄</button>
     </div>
 
     <script>
@@ -44,38 +44,35 @@
         let currentIndex = 0;
 
         async function fetchDialogue() {
-            try {
-                // [성공의 핵심] 주소와 모델명을 가장 호환성이 높은 조합으로 고정했습니다.
-                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
-                
-                const prompt = "Generate a 6-line travel English dialogue between Staff and Jiyoung. " +
-                               "Situation: Random travel context (Airport, Hotel, or Shopping). " +
-                               "Output MUST be ONLY JSON: { \"situation\": \"string\", \"lines\": [ { \"en\": \"string\", \"ko\": \"한국어\", \"pr\": \"발음\" } ] }";
+            // 시도할 주소 목록 (v1beta와 v1 모두 준비)
+            const versions = ['v1beta', 'v1'];
+            const prompt = "Generate a 6-line travel English dialogue. Random situation (Airport, Hotel, Shopping). Output ONLY JSON: { \"situation\": \"string\", \"lines\": [ { \"en\": \"string\", \"ko\": \"한국어\", \"pr\": \"발음\" } ] }";
 
-                const res = await fetch(url, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
-                });
+            for (const ver of versions) {
+                try {
+                    const url = `https://generativelanguage.googleapis.com/${ver}/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
+                    const res = await fetch(url, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+                    });
+                    const json = await res.json();
 
-                const json = await res.json();
-                
-                // 에러가 났을 때 어떤 에러인지 상세히 볼 수 있게 보강했습니다.
-                if (json.error) {
-                    throw new Error(json.error.message);
+                    if (!json.error) {
+                        const rawText = json.candidates[0].content.parts[0].text.replace(/```json/g, "").replace(/```/g, "").trim();
+                        const data = JSON.parse(rawText);
+                        dialogue = data.lines;
+                        document.getElementById('lbl-situation').innerText = "📍 상황: " + data.situation;
+                        document.getElementById('loading').style.display = 'none';
+                        render();
+                        return; // 성공하면 여기서 종료
+                    }
+                } catch (e) {
+                    console.error(`${ver} 시도 실패`, e);
                 }
-
-                const rawText = json.candidates[0].content.parts[0].text.replace(/```json/g, "").replace(/```/g, "").trim();
-                const data = JSON.parse(rawText);
-                
-                dialogue = data.lines;
-                document.getElementById('lbl-situation').innerText = "📍 상황: " + data.situation;
-                document.getElementById('loading').style.display = 'none';
-                render();
-            } catch (e) {
-                alert("연결에 성공하지 못했습니다.\n원인: " + e.message + "\n\n1분 뒤에 다시 시도해 주세요!");
-                console.error(e);
             }
+            // 모든 시도가 실패했을 때만 알럿창
+            alert("연결에 실패했습니다. API 키가 정확한지, 혹은 1분 뒤에 다시 시도해 주세요!");
         }
 
         function render() {
@@ -91,8 +88,8 @@
                 currentIndex++;
                 render();
             } else {
-                document.getElementById('lbl-situation').innerText = "🎉 연습 완료!";
-                document.getElementById('main-card').innerHTML = "<h3>멋져요, 지영 님! 💮</h3><p>오늘의 공부를 완료했습니다.</p>";
+                document.getElementById('lbl-situation').innerText = "🎉 오늘의 연습 끝!";
+                document.getElementById('main-card').innerHTML = "<h3>대단해요, 지영 님! 💮</h3><p>오늘의 학습을 마쳤습니다.</p>";
                 document.getElementById('btn-next').style.display = 'none';
                 document.getElementById('btn-restart').style.display = 'block';
             }
