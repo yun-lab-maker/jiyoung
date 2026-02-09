@@ -3,16 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Travel English Lounge</title>
+    <title>Premium Travel English</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary: #4f46e5; /* 신뢰감을 주는 블루 */
+            --primary: #4f46e5;
             --accent: #f43f5e;
             --bg: #fdfdfd;
             --card-bg: #ffffff;
             --text-main: #111827;
             --text-sub: #6b7280;
+            --pronunciation: #ef4444; /* 발음 기호 색상 */
         }
         body { font-family: 'Inter', 'Noto Sans KR', sans-serif; background-color: var(--bg); color: var(--text-main); margin: 0; padding: 20px; display: flex; justify-content: center; -webkit-font-smoothing: antialiased; }
         .app-container { max-width: 480px; width: 100%; }
@@ -26,26 +27,30 @@
 
         .situation-badge { display: inline-block; background: #eef2ff; color: var(--primary); padding: 6px 16px; border-radius: 20px; font-size: 12px; font-weight: 700; margin-bottom: 16px; text-transform: uppercase; }
 
-        .study-card { background: var(--card-bg); border-radius: 32px; padding: 45px 35px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 10px 10px -5px rgba(0, 0, 0, 0.02); border: 1px solid #f3f4f6; position: relative; margin-bottom: 30px; min-height: 240px; display: flex; flex-direction: column; justify-content: center; }
-        .meaning-text { font-size: 17px; color: var(--text-sub); margin-bottom: 18px; line-height: 1.6; }
-        .english-text { font-size: 26px; font-weight: 700; color: var(--text-main); line-height: 1.35; word-break: keep-all; letter-spacing: -0.5px; }
+        .study-card { background: var(--card-bg); border-radius: 32px; padding: 40px 30px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05); border: 1px solid #f3f4f6; position: relative; margin-bottom: 25px; min-height: 280px; display: flex; flex-direction: column; justify-content: center; }
+        .meaning-text { font-size: 16px; color: var(--text-sub); margin-bottom: 12px; font-weight: 500; }
+        .english-text { font-size: 24px; font-weight: 700; color: var(--text-main); line-height: 1.3; margin-bottom: 12px; word-break: keep-all; }
+        .pronunciation-text { font-size: 15px; color: var(--pronunciation); font-weight: 600; margin-bottom: 20px; opacity: 0.8; }
         
-        .audio-btn { position: absolute; bottom: 25px; right: 25px; width: 48px; height: 48px; border-radius: 50%; border: none; background: #f9fafb; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; border: 1px solid #f3f4f6; }
-        .audio-btn:hover { background: #f3f4f6; transform: scale(1.05); }
-        .audio-btn svg { width: 22px; height: 22px; fill: var(--primary); }
+        /* 단어장 스타일 */
+        .vocabulary-box { background: #f9fafb; border-radius: 16px; padding: 15px; text-align: left; }
+        .voc-title { font-size: 12px; font-weight: 800; color: var(--text-sub); margin-bottom: 8px; text-transform: uppercase; }
+        .voc-item { font-size: 13px; color: #4b5563; line-height: 1.5; }
+        .voc-item b { color: var(--primary); }
+
+        .audio-btn { position: absolute; top: 25px; right: 25px; width: 44px; height: 44px; border-radius: 50%; border: none; background: #f1f5f9; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+        .audio-btn:hover { background: #e2e8f0; }
+        .audio-btn svg { width: 20px; height: 20px; fill: var(--primary); }
 
         .next-btn { width: 100%; background: var(--text-main); color: white; border: none; padding: 22px; border-radius: 20px; font-size: 18px; font-weight: 700; cursor: pointer; transition: all 0.2s; margin-bottom: 12px; }
-        .next-btn:hover { opacity: 0.9; }
         .next-btn:active { transform: scale(0.98); }
 
         .sub-btn-group { display: flex; gap: 10px; }
-        .sub-btn { flex: 1; background: #ffffff; border: 1px solid #e5e7eb; padding: 14px; border-radius: 16px; font-size: 14px; font-weight: 600; cursor: pointer; color: var(--text-sub); transition: all 0.2s; }
-        .sub-btn:hover { background: #f9fafb; }
+        .sub-btn { flex: 1; background: #ffffff; border: 1px solid #e5e7eb; padding: 14px; border-radius: 16px; font-size: 14px; font-weight: 600; cursor: pointer; color: var(--text-sub); }
 
-        #full-script { display: none; margin-top: 30px; background: #fff; border-radius: 24px; padding: 25px; border: 1px solid #f3f4f6; }
+        #full-script { display: none; margin-top: 30px; background: #fff; border-radius: 24px; padding: 25px; border: 1px solid #f3f4f6; text-align: left; }
         .script-row { padding: 15px 0; border-bottom: 1px solid #f9fafb; }
-        .script-row:last-child { border-bottom: none; }
-        .script-en { font-weight: 700; font-size: 15px; color: var(--primary); display: block; margin-bottom: 4px; }
+        .script-en { font-weight: 700; font-size: 15px; color: var(--primary); display: block; }
         .script-ko { font-size: 14px; color: var(--text-sub); }
     </style>
 </head>
@@ -53,57 +58,60 @@
     <div class="app-container">
         <header class="header">
             <h1>Travel English</h1>
-            <p>당신의 설레는 여행을 응원합니다 ✈️</p>
+            <p>지영 님이 선물하는 여행의 설렘 ✈️</p>
         </header>
 
         <div class="progress-container"><div class="progress-bar" id="pb"></div></div>
-
         <div id="lbl-sit" class="situation-badge">READY</div>
 
         <div class="study-card">
-            <div id="lbl-ko" class="meaning-text"></div>
-            <div id="lbl-en" class="english-text"></div>
             <button class="audio-btn" onclick="speak()">
                 <svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
             </button>
+            <div id="lbl-ko" class="meaning-text"></div>
+            <div id="lbl-en" class="english-text"></div>
+            <div id="lbl-pr" class="pronunciation-text"></div>
+            
+            <div class="vocabulary-box">
+                <div class="voc-title">Key Vocabulary</div>
+                <div id="lbl-voc" class="voc-item"></div>
+            </div>
         </div>
 
         <button class="next-btn" id="btn-next" onclick="nextStep()">다음 문장 ➡️</button>
-
         <div class="sub-btn-group">
-            <button class="sub-btn" onclick="toggleScript()">전체 대본</button>
-            <button class="sub-btn" onclick="location.reload()">다른 상황</button>
+            <button class="sub-btn" onclick="toggleScript()">전체 보기</button>
+            <button class="sub-btn" onclick="location.reload()">새로운 상황</button>
         </div>
-
         <div id="full-script"></div>
     </div>
 
     <script>
         const scenarios = [
-            { sit: "Airport Check-in", lines: [
-                {en:"I'd like to check my bags, please.", ko:"짐을 부치고 싶습니다."},
-                {en:"Do you have any fragile items in your luggage?", ko:"가방 안에 파손되기 쉬운 물건이 있나요?"},
-                {en:"No, just personal belongings.", ko:"아니요, 개인 소지품뿐입니다."},
-                {en:"Would you like an aisle seat or a window seat?", ko:"통로 쪽 좌석과 창가 쪽 좌석 중 어디를 원하시나요?"}
-            ]},
-            { sit: "At a Local Cafe", lines: [
-                {en:"Can I get a medium latte with oat milk?", ko:"오트 밀크를 넣은 중간 사이즈 라떼 한 잔 주시겠어요?"},
-                {en:"Would you like that hot or iced?", ko:"따뜻하게 드릴까요, 차갑게 드릴까요?"},
-                {en:"Iced, please. And to go.", ko:"차갑게 주세요. 그리고 테이크아웃 할게요."},
-                {en:"Do you need a receipt?", ko:"영수증 필요하신가요?"}
-            ]},
-            { sit: "Ordering at a Restaurant", lines: [
-                {en:"What's the most popular dish here?", ko:"여기서 가장 인기 있는 메뉴가 무엇인가요?"},
-                {en:"The grilled steak is our specialty.", ko:"그릴드 스테이크가 저희 시그니처 메뉴입니다."},
-                {en:"I'll go with that. And a glass of red wine, please.", ko:"그걸로 할게요. 그리고 레드 와인 한 잔 주세요."},
-                {en:"How would you like your steak cooked?", ko:"고기는 어떻게 익혀드릴까요?"}
-            ]},
-            { sit: "Shopping & Tax Refund", lines: [
-                {en:"Excuse me, do you have this in a smaller size?", ko:"실례합니다, 이거 더 작은 사이즈 있을까요?"},
-                {en:"Let me check the stock for you.", ko:"재고가 있는지 확인해 보겠습니다."},
-                {en:"I'll take it. Can I get a tax refund on this?", ko:"이걸로 살게요. 택스 리펀 받을 수 있나요?"},
-                {en:"Yes, please show me your passport.", ko:"네, 여권을 보여주세요."}
-            ]}
+            { 
+                sit: "Airport Check-in", 
+                lines: [
+                    {en:"I'd like to check my bags, please.", ko:"짐을 부치고 싶습니다.", pr:"아이드 라이크 투 첵 마이 백스, 플리즈", voc:"<b>check bags</b>: 짐을 부치다"},
+                    {en:"Is there any fragile item inside?", ko:"안에 깨지기 쉬운 물건이 있나요?", pr:"이즈 데어 애니 프래자일 아이템 인사이드?", voc:"<b>fragile</b>: 깨지기 쉬운, 취약한"},
+                    {en:"No, there's nothing fragile.", ko:"아니요, 깨지는 건 없어요.", pr:"노, 데어즈 나씽 프래자일", voc:"<b>nothing</b>: 아무것도 없음"}
+                ]
+            },
+            { 
+                sit: "Ordering at Cafe", 
+                lines: [
+                    {en:"Can I get a latte with oat milk?", ko:"오트 밀크를 넣은 라떼 한 잔 주시겠어요?", pr:"캔 아이 겟 어 라떼 위드 오트 밀크?", voc:"<b>oat milk</b>: 귀리 우유"},
+                    {en:"Would you like that hot or iced?", ko:"따뜻하게 드릴까요, 차갑게 드릴까요?", pr:"우쥬 라이크 댓 핫 오어 아이스트?", voc:"<b>Would you like~</b>: ~하시겠어요?"},
+                    {en:"Iced, please. And to go.", ko:"차갑게 주세요. 그리고 테이크아웃 할게요.", pr:"아이스트, 플리즈. 앤 투 고", voc:"<b>to go</b>: 포장해서 가다"}
+                ]
+            },
+            { 
+                sit: "At the Restaurant", 
+                lines: [
+                    {en:"A table for two, please.", ko:"두 명 자리가 있을까요?", pr:"어 테이블 포 투, 플리즈", voc:"<b>table for (숫자)</b>: ~명 예약/자리"},
+                    {en:"We're ready to order now.", ko:"이제 주문할게요.", pr:"위아 레디 투 오더 나우", voc:"<b>ready to order</b>: 주문할 준비가 된"},
+                    {en:"Could we have the bill, please?", ko:"계산서 좀 주시겠어요?", pr:"쿠드 위 해브 더 빌, 플리즈?", voc:"<b>bill</b>: 계산서, 청구서"}
+                ]
+            }
         ];
 
         let current = scenarios[Math.floor(Math.random() * scenarios.length)];
@@ -114,6 +122,8 @@
             document.getElementById('lbl-sit').innerText = "📍 " + current.sit;
             document.getElementById('lbl-en').innerText = line.en;
             document.getElementById('lbl-ko').innerText = line.ko;
+            document.getElementById('lbl-pr').innerText = "[" + line.pr + "]";
+            document.getElementById('lbl-voc').innerHTML = line.voc;
             
             let progress = ((idx + 1) / current.lines.length) * 100;
             document.getElementById('pb').style.width = progress + "%";
@@ -123,8 +133,15 @@
         function speak() {
             window.speechSynthesis.cancel();
             const ut = new SpeechSynthesisUtterance(current.lines[idx].en);
+            
+            // 미국식 악센트 설정 보강
+            const voices = window.speechSynthesis.getVoices();
+            const usVoice = voices.find(voice => voice.lang === 'en-US' && voice.name.includes('Google'));
+            if (usVoice) ut.voice = usVoice;
+
             ut.lang = 'en-US';
-            ut.rate = 0.95;
+            ut.rate = 0.85; // 자연스러운 학습을 위해 살짝 느리게
+            ut.pitch = 1.1; // 약간 더 생동감 있는 톤
             window.speechSynthesis.speak(ut);
         }
 
@@ -140,8 +157,7 @@
         function toggleScript() {
             const fs = document.getElementById('full-script');
             if(fs.style.display === 'block') { fs.style.display = 'none'; return; }
-            
-            let html = "<h3 style='margin-top:0; font-size:18px;'>Review Today's Script</h3>";
+            let html = "<h3 style='margin-top:0; font-size:16px;'>Review</h3>";
             current.lines.forEach(l => {
                 html += `<div class="script-row"><span class="script-en">${l.en}</span><span class="script-ko">${l.ko}</span></div>`;
             });
@@ -150,7 +166,10 @@
             fs.scrollIntoView({ behavior: 'smooth' });
         }
 
-        render();
+        // 목소리 로딩 대기 후 첫 렌더링
+        window.speechSynthesis.onvoiceschanged = render;
+        if (window.speechSynthesis.getVoices().length > 0) render();
+
     </script>
 </body>
 </html>
