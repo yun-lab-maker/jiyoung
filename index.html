@@ -26,11 +26,12 @@
         .next-btn { width: 100%; background: var(--text-main); color: white; border: none; padding: 20px; border-radius: 18px; font-size: 17px; font-weight: 700; cursor: pointer; margin-bottom: 10px; }
         .sub-btn-group { display: flex; gap: 8px; }
         .sub-btn { flex: 1; background: #ffffff; border: 1px solid #e2e8f0; padding: 12px; border-radius: 14px; font-size: 13px; font-weight: 600; cursor: pointer; color: var(--text-sub); }
+        #full-script { display: none; margin-top: 25px; background: #fff; border-radius: 20px; padding: 20px; border: 1px solid #f1f5f9; text-align: left; }
     </style>
 </head>
 <body>
     <div class="app-container">
-        <header class="header"><h1>Travel English Lounge</h1><p>누를 때마다 새로운 여행의 시작 ✈️</p></header>
+        <header class="header"><h1>Travel English Lounge</h1><p>당신의 더 넓은 세상을 향한 여정 ✈️</p></header>
         <div class="progress-container"><div class="progress-bar" id="pb"></div></div>
         <div id="lbl-sit" class="situation-badge">READY</div>
         <div class="study-card">
@@ -40,25 +41,27 @@
             <div id="lbl-pr" class="pronunciation-text"></div>
             <div class="vocabulary-box"><div class="voc-title">Words</div><div id="lbl-voc" class="voc-item"></div></div>
         </div>
-        <button class="next-btn" id="btn-main" onclick="nextStep()">다음 문장 ➡️</button>
+        <button class="next-btn" onclick="nextStep()">다음 문장 ➡️</button>
         <div class="sub-btn-group">
-            <button class="sub-btn" onclick="shuffleScenario()">새로운 상황 랜덤 생성 🎲</button>
+            <button class="sub-btn" onclick="toggleScript()">대본 전체보기</button>
+            <button class="sub-btn" onclick="shuffleScenario()">다른 상황 불러오기</button>
         </div>
+        <div id="full-script"></div>
     </div>
 
     <script>
-        const allScenarios = [
-            { sit: "기내 음료", lines: [{en:"Any drinks for you?", ko:"음료 드릴까요?", pr:"애니 드링크스 포 유?", voc:"<b>drink</b>: 음료"}, {en:"Water, please.", ko:"물 주세요.", pr:"워터, 플리즈", voc:"<b>Water</b>: 물"}] },
-            { sit: "호텔 체크인", lines: [{en:"I have a reservation.", ko:"예약했어요.", pr:"아이 해브 어 레저베이션", voc:"<b>reservation</b>: 예약"}, {en:"Name, please?", ko:"성함이 어떻게 되시죠?", pr:"네임, 플리즈?", voc:"<b>Name</b>: 이름"}] },
-            { sit: "입국 심사", lines: [{en:"Business or pleasure?", ko:"일 때문인가요, 관광인가요?", pr:"비즈니스 오어 플레져?", voc:"<b>pleasure</b>: 관광/즐거움"}, {en:"Sightseeing, please.", ko:"관광하러 왔어요.", pr:"사이트씨잉, 플리즈", voc:"<b>sightseeing</b>: 관광"}] },
-            { sit: "택시 타기", lines: [{en:"To this address, please.", ko:"이 주소로 가주세요.", pr:"투 디스 어드레스, 플리즈", voc:"<b>address</b>: 주소"}, {en:"How long does it take?", ko:"얼마나 걸릴까요?", pr:"하우 롱 더즈 잇 테이크?", voc:"<b>How long</b>: 얼마나 오래"}] },
-            { sit: "식당 주문", lines: [{en:"I'm ready to order.", ko:"주문할게요.", pr:"아임 레디 투 오더", voc:"<b>ready</b>: 준비된"}, {en:"I'll have this one.", ko:"이걸로 주세요.", pr:"아일 해브 디스 원", voc:"<b>I'll have~</b>: ~로 할게요"}] },
-            { sit: "카페 주문", lines: [{en:"A coffee, please.", ko:"커피 한 잔 주세요.", pr:"어 커피, 플리즈", voc:"<b>coffee</b>: 커피"}, {en:"Size, please?", ko:"사이즈는요?", pr:"사이즈, 플리즈?", voc:"<b>Size</b>: 크기"}] },
-            { sit: "옷 쇼핑", lines: [{en:"Can I try this on?", ko:"입어봐도 될까요?", pr:"캔 아이 트라이 디스 온?", voc:"<b>try on</b>: 입어보다"}, {en:"Where is the fitting room?", ko:"탈의실이 어디죠?", pr:"웨어 이즈 더 피팅 룸?", voc:"<b>fitting room</b>: 탈의실"}] },
-            { sit: "환전", lines: [{en:"Change this to Dollars, please.", ko:"달러로 환전해 주세요.", pr:"체인지 디스 투 달러즈, 플리즈", voc:"<b>Change</b>: 바꾸다/환전"}, {en:"What's the rate today?", ko:"오늘 환율이 어떻게 되죠?", pr:"왓츠 더 레이트 투데이?", voc:"<b>rate</b>: 환율"}] },
-            { sit: "길 찾기", lines: [{en:"Where is the subway?", ko:"지하철역이 어디죠?", pr:"웨어 이즈 더 썹웨이?", voc:"<b>subway</b>: 지하철"}, {en:"Go straight.", ko:"똑바로 가세요.", pr:"고 스트레이트", voc:"<b>straight</b>: 직진"}] },
-            { sit: "박물관 티켓", lines: [{en:"Two adults, please.", ko:"성인 두 명요.", pr:"투 어덜츠, 플리즈", voc:"<b>adult</b>: 성인"}, {en:"Is it open now?", ko:"지금 여나요?", pr:"이즈 잇 오픈 나우?", voc:"<b>open</b>: 열다"}] }
-            // ... (데이터 양을 조절하여 50개까지 확장 가능)
+        const scenarios = [
+            { sit: "In-flight Drink", lines: [{en:"What would you like to drink?", ko:"어떤 음료를 드릴까요?", pr:"왓 우쥬 라이크 투 드링크?", voc:"<b>drink</b>: 음료"}, {en:"Orange juice, please.", ko:"오렌지 주스 주세요.", pr:"오렌지 주스, 플리즈", voc:"<b>juice</b>: 주스"}] },
+            { sit: "Hotel Check-in", lines: [{en:"I have a reservation.", ko:"예약했습니다.", pr:"아이 해브 어 레저베이션", voc:"<b>reservation</b>: 예약"}, {en:"Under what name?", ko:"성함이 어떻게 되시죠?", pr:"언더 왓 네임?", voc:"<b>Under name</b>: ~의 이름으로"}] },
+            { sit: "Asking for Water", lines: [{en:"Could I get some water?", ko:"물 좀 주시겠어요?", pr:"쿠드 아이 겟 썸 워터?", voc:"<b>water</b>: 물"}, {en:"Sure, here it is.", ko:"그럼요, 여기 있습니다.", pr:"슈어, 히어 잇 이즈", voc:"<b>here it is</b>: 여기 있어요"}] },
+            { sit: "Taxi Service", lines: [{en:"To the airport, please.", ko:"공항으로 가주세요.", pr:"투 더 에어포트, 플리즈", voc:"<b>airport</b>: 공항"}, {en:"How long does it take?", ko:"얼마나 걸릴까요?", pr:"하우 롱 더즈 잇 테이크?", voc:"<b>how long</b>: 얼마나 오래"}] },
+            { sit: "Ordering Coffee", lines: [{en:"A latte, please.", ko:"라떼 한 잔 주세요.", pr:"어 라떼, 플리즈", voc:"<b>latte</b>: 라떼"}, {en:"For here or to go?", ko:"드시고 가세요, 포장인가요?", pr:"포 히어 오어 투 고?", voc:"<b>to go</b>: 포장"}] },
+            { sit: "In a Restaurant", lines: [{en:"A table for two, please.", ko:"두 명 자리가 있을까요?", pr:"어 테이블 포 투, 플리즈", voc:"<b>table</b>: 테이블/자리"}, {en:"Follow me, please.", ko:"이쪽으로 오세요.", pr:"팔로우 미, 플리즈", voc:"<b>follow</b>: 따라오다"}] },
+            { sit: "Asking Directions", lines: [{en:"Where is the station?", ko:"역이 어디에 있나요?", pr:"웨어 이즈 더 스테이션?", voc:"<b>station</b>: 역"}, {en:"It's over there.", ko:"저쪽에 있습니다.", pr:"잇츠 오버 데어", voc:"<b>over there</b>: 저기에"}] },
+            { sit: "Buying Tickets", lines: [{en:"One ticket, please.", ko:"티켓 한 장 주세요.", pr:"원 티켓, 플리즈", voc:"<b>ticket</b>: 표"}, {en:"That's ten dollars.", ko:"10달러입니다.", pr:"댓츠 텐 달러즈", voc:"<b>dollar</b>: 달러"}] },
+            { sit: "Shopping", lines: [{en:"How much is this?", ko:"이것은 얼마인가요?", pr:"하우 머치 이즈 디스?", voc:"<b>how much</b>: 얼마"}, {en:"It's too expensive.", ko:"너무 비싸네요.", pr:"잇츠 투 익스펜시브", voc:"<b>expensive</b>: 비싼"}] },
+            { sit: "Pharmacy", lines: [{en:"I need some aspirin.", ko:"아스피린이 필요해요.", pr:"아이 니드 썸 애스피린", voc:"<b>need</b>: 필요하다"}, {en:"Here you go.", ko:"여기 있습니다.", pr:"히어 유 고", voc:"<b>here you go</b>: 여기 있어요"}] }
+            // 지영님, 이 리스트에 50개까지 데이터만 넣으면 로직은 완벽히 돌아갑니다.
         ];
 
         let current;
@@ -66,12 +69,10 @@
 
         function shuffleScenario() {
             let next;
-            do {
-                next = allScenarios[Math.floor(Math.random() * allScenarios.length)];
-            } while (next === current);
+            do { next = scenarios[Math.floor(Math.random() * scenarios.length)]; } while (next === current);
             current = next;
             idx = 0;
-            document.getElementById('btn-main').innerText = "다음 문장 ➡️";
+            document.getElementById('full-script').style.display = 'none';
             render();
         }
 
@@ -89,7 +90,7 @@
         function speak() {
             window.speechSynthesis.cancel();
             const ut = new SpeechSynthesisUtterance(current.lines[idx].en);
-            ut.lang = 'en-US'; ut.rate = 0.85; window.speechSynthesis.speak(ut);
+            ut.lang = 'en-US'; ut.rate = 0.82; window.speechSynthesis.speak(ut);
         }
 
         function nextStep() {
@@ -97,13 +98,23 @@
                 idx++;
                 render();
             } else {
-                // 상황이 끝나면 자동으로 새로운 상황 불러오기
-                shuffleScenario();
+                shuffleScenario(); // 상황 끝나면 다음 상황으로
             }
         }
 
-        // 초기 시작
-        shuffleScenario();
+        function toggleScript() {
+            const fs = document.getElementById('full-script');
+            if(fs.style.display === 'block') { fs.style.display = 'none'; return; }
+            let html = "<h3 style='font-size:15px; margin:0 0 10px 0; color:#4f46e5;'>Review</h3>";
+            current.lines.forEach(l => {
+                html += `<div style="margin-bottom:10px;"><b style="color:#1e293b; font-size:14px;">${l.en}</b><br><small style="color:#64748b;">${l.ko}</small></div>`;
+            });
+            fs.innerHTML = html; fs.style.display = 'block';
+            fs.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        window.speechSynthesis.onvoiceschanged = () => { if(!current) shuffleScenario(); };
+        if (window.speechSynthesis.getVoices().length > 0) shuffleScenario();
     </script>
 </body>
 </html>
