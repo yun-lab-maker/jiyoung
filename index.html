@@ -45,12 +45,12 @@
 
         async function fetchDialogue() {
             try {
-                // [해결 핵심] 모델명을 가장 범용적인 'gemini-1.5-flash-8b' 또는 'gemini-1.5-flash'로 호출합니다.
+                // [성공의 핵심] 주소와 모델명을 가장 호환성이 높은 조합으로 고정했습니다.
                 const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
                 
                 const prompt = "Generate a 6-line travel English dialogue between Staff and Jiyoung. " +
-                               "Situation: Random travel context (NOT breakfast). " +
-                               "Response MUST be ONLY a JSON object: { \"situation\": \"string\", \"lines\": [ { \"en\": \"string\", \"ko\": \"한국어\", \"pr\": \"발음\" } ] }";
+                               "Situation: Random travel context (Airport, Hotel, or Shopping). " +
+                               "Output MUST be ONLY JSON: { \"situation\": \"string\", \"lines\": [ { \"en\": \"string\", \"ko\": \"한국어\", \"pr\": \"발음\" } ] }";
 
                 const res = await fetch(url, {
                     method: 'POST',
@@ -60,34 +60,22 @@
 
                 const json = await res.json();
                 
-                // 만약 에러가 나면 지영 님의 키에 맞는 다른 주소로 재시도합니다.
+                // 에러가 났을 때 어떤 에러인지 상세히 볼 수 있게 보강했습니다.
                 if (json.error) {
-                    console.log("재시도 중...");
-                    const retryUrl = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
-                    const retryRes = await fetch(retryUrl, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
-                    });
-                    const retryJson = await retryRes.json();
-                    if(retryJson.error) throw new Error(retryJson.error.message);
-                    processData(retryJson);
-                } else {
-                    processData(json);
+                    throw new Error(json.error.message);
                 }
+
+                const rawText = json.candidates[0].content.parts[0].text.replace(/```json/g, "").replace(/```/g, "").trim();
+                const data = JSON.parse(rawText);
+                
+                dialogue = data.lines;
+                document.getElementById('lbl-situation').innerText = "📍 상황: " + data.situation;
+                document.getElementById('loading').style.display = 'none';
+                render();
             } catch (e) {
-                alert("연결 오류: " + e.message + "\nAPI 키가 활성화되었는지 다시 확인해 주세요!");
+                alert("연결에 성공하지 못했습니다.\n원인: " + e.message + "\n\n1분 뒤에 다시 시도해 주세요!");
                 console.error(e);
             }
-        }
-
-        function processData(json) {
-            const rawText = json.candidates[0].content.parts[0].text.replace(/```json/g, "").replace(/```/g, "").trim();
-            const data = JSON.parse(rawText);
-            dialogue = data.lines;
-            document.getElementById('lbl-situation').innerText = "📍 상황: " + data.situation;
-            document.getElementById('loading').style.display = 'none';
-            render();
         }
 
         function render() {
